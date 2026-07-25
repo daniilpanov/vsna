@@ -8,7 +8,7 @@ pushd "%SCRIPT_DIR%"
 set "BUILD_DIR=%BUILD_DIR%"
 if "%BUILD_DIR%"=="" set "BUILD_DIR=out"
 
-set "VCPKG_DIR=%SCRIPT_DIR%vcpkg"
+set "VCPKG_DIR=%SCRIPT_DIR%\vcpkg"
 set "TRIPLET=x64-windows"
 set "TYPE="
 set "MODE="
@@ -16,6 +16,7 @@ set "MODE="
 :usage
 echo Usage: %~nx0 ^<command^>
 echo Commands:
+
 echo --server Configure and build as a server
 echo --client Configure and build as a client
 echo --no-vcpkg Configure and build without vcpkg (via lib-devel)

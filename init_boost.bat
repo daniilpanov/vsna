@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 set "ROOT=%~dp0"
-set "VCPKG_DIR=%ROOT%vcpkg"
+set "VCPKG_DIR=%ROOT%\vcpkg"
 set "VCPKG_REPO=https://github.com/microsoft/vcpkg.git"
 set "TRIPLET=x64-windows"
 
