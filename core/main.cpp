@@ -2,12 +2,15 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <asio.hpp>
+#include "server.h"
 
 int main(int argc, char* argv[]) {
-    std::cout << "Hello, World!" << std::endl;
-    
+    std::string config_path = "config.json";
+    Config config = Config::loadFromFile(config_path);    
+
     #if BUILD_SERVER
     std::cout << "Built as a server." << std::endl;
+    start_server(config);
     #endif
 
     #if BUILD_CLIENT

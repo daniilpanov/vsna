@@ -1,12 +1,14 @@
 #include "server.h"
 
 void start_server(const Config& config) {
-    auto const ip = boost::asio::ip::make_address(config.ip);
-    auto const port = config.port;
+    Addr const addr = config.addr;
+    auto const ip = boost::asio::ip::make_address(addr.ip());
+    auto const port = addr.port();
 
     boost::asio::io_context ioc { 1 };
     tcp::acceptor acceptor { ioc, {ip, port} };
 
+    std::cout << "Listening for the connect...\n";
     while (1) {
         tcp::socket socket { ioc };
         acceptor.accept(socket);
