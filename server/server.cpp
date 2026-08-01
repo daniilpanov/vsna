@@ -1,10 +1,12 @@
 #include "server.h"
 
 void start_server(const Config& config) {
+    // Parse the config
     Addr const addr = config.addr;
     auto const ip = boost::asio::ip::make_address(addr.ip());
     auto const port = addr.port();
 
+    // Create input/output acceptor
     boost::asio::io_context ioc { 1 };
     tcp::acceptor acceptor { ioc, {ip, port} };
 
@@ -13,18 +15,19 @@ void start_server(const Config& config) {
         tcp::socket socket { ioc };
         acceptor.accept(socket);
 
+        // Create a new thread with connect
         std::thread{[q = std::move(socket)]() mutable {
-
+            // Accept the connect request
             boost::beast::websocket::stream<tcp::socket> ws {std::move(q)};
             ws.accept();
 
+            // Read the message
             while(1) {
                 boost::beast::flat_buffer buffer;
                 ws.read(buffer);
                 auto out = boost::beast::buffers_to_string(buffer.cdata());
                 std::cout << out << std::endl;
             }
-
         }}.detach();
     }
 }

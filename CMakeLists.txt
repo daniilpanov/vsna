@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(vsna VERSION 1.0.0 LANGUAGES CXX)
 
+# Settings
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -9,15 +10,17 @@ if(POLICY CMP0167)
 endif()
 include(FetchContent)
 
-# set(PROJECT_DEFINITIONS)
+# Definitions for compilation
 option(SERVER "Build server binary" OFF)
 option(CLIENT "Build client binary" OFF)
 
+# Paths
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(COMMON_DIR   ${PROJECT_ROOT}/common)
 set(SERVER_DIR   ${PROJECT_ROOT}/server)
 set(CLIENT_DIR   ${PROJECT_ROOT}/client)
 
+# Sources
 set(COMMON_SOURCES
     ${COMMON_DIR}/addr.cpp
     ${COMMON_DIR}/addr.h
@@ -76,7 +79,6 @@ if (Boost_FOUND)
         Boost::headers
         ${Boost_LIBRARIES}
     )
-
     message("-- Boost status: Found")
 else()
     message(FATAL_ERROR "-- Boost status: Not found")
@@ -90,22 +92,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(cli11)
 
-set(INCLUDE_DIRS
-    common/addr/
-    common/config/
-)
-
-set(LIB_SOURCES
-    common/addr/addr.cpp
-    common/config/config.cpp
-)
-
-set(LINK_LIBRARIES
-    ${Boost_LIBRARIES}
-    nlohmann_json::nlohmann_json
-    CLI11::CLI11
-)
-
+# Compile definitions
 if (SERVER)
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_SERVER=1)
     target_link_libraries(${PROJECT_NAME} PRIVATE server)
