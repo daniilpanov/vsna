@@ -84,14 +84,6 @@ else()
     message(FATAL_ERROR "-- Boost status: Not found")
 endif()
 
-# CLI
-FetchContent_Declare(
-  cli11
-  GIT_REPOSITORY https://github.com/CLIUtils/CLI11
-  GIT_TAG v2.6.2
-)
-FetchContent_MakeAvailable(cli11)
-
 # Compile definitions
 if (SERVER)
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_SERVER=1)

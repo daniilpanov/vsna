@@ -2,7 +2,14 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <asio.hpp>
+
+#if BUILD_SERVER
 #include "server.h"
+#endif
+
+#if BUILD_CLIENT
+#include "client.h"
+#endif
 
 int main(int argc, char* argv[]) {
     std::string config_path = "config.json";
