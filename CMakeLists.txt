@@ -32,6 +32,8 @@ set(SERVER_SOURCES
     ${SERVER_DIR}/server.h
 )
 set(CLIENT_SOURCES
+    ${CLIENT_DIR}/client_cli.cpp
+    ${CLIENT_DIR}/client_cli.h
     ${CLIENT_DIR}/client.cpp
     ${CLIENT_DIR}/client.h
     ${CLIENT_DIR}/menu.cpp

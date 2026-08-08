@@ -2,32 +2,31 @@
 #include <iostream>
 #include <string>
 #include <CLI11.hpp>
+#include <boost/asio.hpp>
 #include "config.h"
-#include "menu.h"
+
+using boost::asio::ip::tcp;
+using tcp = boost::asio::ip::tcp;
+
+enum { max_length = 1024 };
 
 
 class Client {
 public:
-    Client() : _config(Config()) {}
+    Client() : 
+        _config(Config()), 
+        _io_service(boost::asio::io_service()),
+        _resolver(tcp::resolver(_io_service)),
+        _socket(tcp::socket(_io_service))
+    {}
+
+    void connect();
+
     Config getConfig() const { return _config; };
 
 private:
     Config _config;
-
-};
-
-
-class ClientCLI {
-public:
-    ClientCLI()=default;
-    ClientCLI(const Client* client) : _client(client), _config(client->getConfig()) { this->buildCommands(); }
-    void CLIParse(int argc, char** argv);
-    void buildCommands();
-    void run(int argc, char** argv);
-
-private:
-    const Client* _client;
-    Config _config;
-    bool _isExit{ false };
-    std::unordered_map<std::string, std::unique_ptr<MenuItem>> _commands;
+    boost::asio::io_service _io_service;
+    tcp::resolver _resolver;
+    tcp::socket _socket;
 };

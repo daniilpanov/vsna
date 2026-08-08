@@ -8,10 +8,8 @@
 #include <sstream>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/core.hpp>
-#include <boost/asio.hpp>
 #include "config.h"
-
-using tcp = boost::asio::ip::tcp;
+#include "client.h"
 
 using ARG_VECTOR = std::vector<std::string>;
 using STRING_ARG = const std::string&;
@@ -26,9 +24,9 @@ public:
 };
 
 class ConnectCommand : public MenuItem {
-    const Config& config;
+    Client* _client;
 public:
-    ConnectCommand(const Config& config) : config(config) {}
+    ConnectCommand(Client* client) : _client(client) {}
     void handle(const ARG_VECTOR&) override;
     const char* getName() const override { return "connect"; }
     const char* getDescription() const override { return "Connect to the server"; }

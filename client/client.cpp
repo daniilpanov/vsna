@@ -1,82 +1,27 @@
 #include "client.h"
 
-// void Client::startCLI() const{
-//     std::cout << _config.toString() << std::endl;
-//     Menu menu(this);
-//     menu.run();
-// }
-
-void ClientCLI::CLIParse(int argc, char** argv) {
-    CLI::App app{ "VSNA" };
-
-    std::string ip{ "0.0.0.0" };
-    std::string port{ "5555" };
-    std::string path{ "/" };
-    std::string configFile;
-    
-    app.add_option("-i,--ip", ip, "IP address of the server");
-    app.add_option("-p,--port", port, "Port of the server");
-    app.add_option("-d,--dir", path, "Path to the server");
-    app.add_option("-c,--config", configFile, "Path to the config file");
-
+void Client::connect() {
     try {
-        app.parse(argc, argv);
-    } catch (const CLI::ParseError& e) {
-        app.exit(e);
-        std::cerr << e.what() << std::endl;
-        exit(-1);
+        Addr addr = _config.getAddr();
+        tcp::resolver::query query(tcp::v4(), addr.ip(), std::to_string(addr.port()));
+        tcp::resolver::iterator it = _resolver.resolve(query);
+
+        boost::asio::connect(_socket, it);
+
+        std::cout << "Enter message: ";
+        char request[max_length];
+        std::cin.getline(request, max_length);
+        size_t request_length = strlen(request);
+        boost::asio::write(_socket, boost::asio::buffer(request, request_length));
+
+        char reply[max_length];
+        size_t reply_length = boost::asio::read(_socket,
+            boost::asio::buffer(reply, request_length));
+        std::cout << "Reply is: ";
+        std::cout.write(reply, reply_length);
+        std::cout << "\n";
     }
-
-    if (!configFile.empty()) {
-        if (std::filesystem::exists(configFile)) {
-            try {
-                this->_config = Config::loadFromFile(configFile);
-            } catch (const std::exception& e) {
-                std::cerr << e.what() << std::endl;
-                exit(-1);
-            }
-        } else {
-            std::cerr << "[!] File not found: " << configFile << std::endl;
-            exit(-1);
-        }
-    } else {
-        this->_config = Config(Addr(ip, port), path);
-    }
-}
-
-void ClientCLI::buildCommands() {
-    auto add = [&](auto cmd) {
-        _commands[cmd->getName()] = std::move(cmd);
-    };
-    add(std::make_unique<HelpCommand>(_commands));
-    add(std::make_unique<ExitCommand>(_isExit));
-    add(std::make_unique<PrintCommand>(_config));
-    add(std::make_unique<MyPathCommand>(_config));
-    add(std::make_unique<ConnectCommand>(_config));
-    add(std::make_unique<ShowPathCommand>(_config));
-    add(std::make_unique<DownloadCommand>(_config));
-    add(std::make_unique<SendFilesCommand>(_config));
-}
-
-void ClientCLI::run(int argc, char** argv) {
-    this->CLIParse(argc, argv);
-    this->buildCommands();
-    std::cout << _config.toString() << std::endl;
-    
-    std::string input;
-    while (true) {
-        std::cout << "> ";
-        std::getline(std::cin, input);
-        ARG_VECTOR args = splitArgs(input);
-
-        if (args.empty()) continue;
-
-        auto it = _commands.find(args[0]);
-        if (it == _commands.end()) {
-            std::cout << "Unknown command: " << args[0] << std::endl;
-        } else {
-            it->second->handle(ARG_VECTOR(args.begin() + 1, args.end()));
-        }
-        if (_isExit) break;
+    catch (std::exception& e) {
+        std::cerr << "Exception: " << e.what() << "\n";
     }
 }

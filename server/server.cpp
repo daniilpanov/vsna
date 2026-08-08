@@ -10,6 +10,7 @@ void start_server(const Config& config) {
     boost::asio::io_context ioc { 1 };
     tcp::acceptor acceptor { ioc, {ip, port} };
 
+    std::cout << "Addr: " << addr.toString() << std::endl;
     std::cout << "Listening for the connect...\n";
     while (1) {
         tcp::socket socket { ioc };

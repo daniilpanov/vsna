@@ -9,7 +9,7 @@
 #endif
 
 #if BUILD_CLIENT
-#include "client.h"
+#include "client_cli.h"
 #endif
 
 int main(int argc, char* argv[]) {

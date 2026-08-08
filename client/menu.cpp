@@ -26,13 +26,7 @@ void PrintCommand::handle(const ARG_VECTOR& args) {
 }
 
 void ConnectCommand::handle(const ARG_VECTOR& args) {
-    if (args.empty()) {
-        std::cout << "Usage: " << getUsage() << std::endl;
-        return;
-    }
-    
-    boost::asio::io_service io_service;
-    tcp::resolver resolver(io_service);
+    _client->connect();
 }
 
 void ShowPathCommand::handle(const ARG_VECTOR& args) {
