@@ -8,7 +8,7 @@
 using boost::asio::ip::tcp;
 using tcp = boost::asio::ip::tcp;
 
-enum { max_length = 1024 };
+constexpr uint16_t max_length { 1024 };
 
 
 class Client {

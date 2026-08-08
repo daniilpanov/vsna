@@ -5,14 +5,11 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
-#include <sstream>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/core.hpp>
 #include "config.h"
 #include "client.h"
-
-using ARG_VECTOR = std::vector<std::string>;
-using STRING_ARG = const std::string&;
+#include "types.h"
 
 class MenuItem{
 public:

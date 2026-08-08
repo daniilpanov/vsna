@@ -3,7 +3,7 @@
 void Client::connect() {
     try {
         Addr addr = _config.getAddr();
-        tcp::resolver::query query(tcp::v4(), addr.ip(), std::to_string(addr.port()));
+        tcp::resolver::query query(tcp::v4(), addr.ip(), addr.port());
         tcp::resolver::iterator it = _resolver.resolve(query);
 
         boost::asio::connect(_socket, it);

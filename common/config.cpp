@@ -13,8 +13,9 @@ Config Config::loadFromFile(STRING_ARG filename) {
     
     Config config;
 
-    config.setAddr(Addr(j["ip"].get<std::string>(),
-        j["port"].get<std::string>()));
+    config.setAddr(
+        Addr(j["ip"].get<std::string>(),
+             j["port"].get<std::string>()));
     config.setPath(j["path"].get<std::string>());
     
     return config;
@@ -52,12 +53,9 @@ void Config::setPath(STRING_ARG _server_path) {
         
         this->_path = std::filesystem::canonical(path).string();
     } catch (const std::filesystem::filesystem_error& e) {
-        throw std::runtime_error("[!] Filesystem error: " + std::string(e.what()));
+        throw std::runtime_error("[!] Filesystem error: " + e.what());
     }
 }
-
-Addr Config::getAddr() const { return this->_addr; }
-std::string Config::getPath() const { return this->_path; }
 
 std::string Config::toString() const {
     return std::string("[=] Config:\n") +

@@ -10,7 +10,7 @@ void ClientCLI::CLIParse(int argc, char** argv) {
     
     app.add_option("-i,--ip", ip, "IP address of the server");
     app.add_option("-p,--port", port, "Port of the server");
-    app.add_option("-d,--dir", path, "Path to the server");
+    app.add_option("-d,--dir", path, "Client path to download files or send from");
     app.add_option("-c,--config", configFile, "Path to the config file");
 
     try {

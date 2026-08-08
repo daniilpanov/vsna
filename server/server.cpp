@@ -4,7 +4,7 @@ void start_server(const Config& config) {
     // Parse the config
     Addr const addr = config.getAddr();
     auto const ip = boost::asio::ip::make_address(addr.ip());
-    auto const port = addr.port();
+    auto const port = addr.portNum();
 
     // Create input/output acceptor
     boost::asio::io_context ioc { 1 };
