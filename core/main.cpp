@@ -24,9 +24,8 @@ int main(int argc, char* argv[]) {
     #if BUILD_CLIENT
     std::cout << "Built as a client." << std::endl; 
     
-    Client client;
-    client.CLIParse(argc, argv);
-    client.startCLI();
+    ClientCLI client;
+    client.run(argc, argv);
     #endif
 
     return EXIT_SUCCESS;

@@ -6,7 +6,12 @@
 #include <iostream>
 #include <algorithm>
 #include <sstream>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/asio.hpp>
 #include "config.h"
+
+using tcp = boost::asio::ip::tcp;
 
 using ARG_VECTOR = std::vector<std::string>;
 using STRING_ARG = const std::string&;
@@ -41,9 +46,9 @@ public:
 };
 
 class MyPathCommand : public MenuItem {
-    const Config& config;
+    const Config& _config;
 public:
-    MyPathCommand(const Config& config) : config(config) {}
+    MyPathCommand(const Config& config) : _config(config) {}
     void handle(const ARG_VECTOR&) override;
     const char* getName() const override { return "mypath"; }
     const char* getDescription() const override { return "Show the client path"; }
@@ -51,9 +56,9 @@ public:
 };
 
 class SendFilesCommand : public MenuItem {
-    const Config& config;
+    const Config& _config;
 public:
-    SendFilesCommand(const Config& config) : config(config) {}
+    SendFilesCommand(const Config& config) : _config(config) {}
     void handle(const ARG_VECTOR&) override;
     const char* getName() const override { return "send"; }
     const char* getDescription() const override { return "Send files to the server"; }
@@ -61,9 +66,9 @@ public:
 };
 
 class DownloadCommand : public MenuItem {
-    const Config& config;
+    const Config& _config;
 public:
-    DownloadCommand(const Config& config) : config(config) {}
+    DownloadCommand(const Config& config) : _config(config) {}
     void handle(const ARG_VECTOR&) override;
     const char* getName() const override { return "download"; }
     const char* getDescription() const override { return "Download files from the server"; }
@@ -71,42 +76,31 @@ public:
 };
 
 class ExitCommand : public MenuItem {
-    bool& isExit;
+    bool& _isExit;
 public:
-    ExitCommand(bool& exitFlag) : isExit(exitFlag) {}
+    ExitCommand(bool& exitFlag) : _isExit(exitFlag) {}
     void handle(const ARG_VECTOR&) override;
     const char* getName() const override { return "exit"; }
     const char* getDescription() const override { return "Exit the program"; }
 };
 
 class PrintCommand : public MenuItem {
-    const Config& config;
+    const Config& _config;
 public:
-    PrintCommand(const Config& config) : config(config) {}
+    PrintCommand(const Config& config) : _config(config) {}
     void handle(const ARG_VECTOR&) override;
     const char* getName() const override { return "print"; }
     const char* getDescription() const override { return "Print the current path"; }
 };
 
 class HelpCommand : public MenuItem {
-    std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands;
+    std::unordered_map<std::string, std::unique_ptr<MenuItem>>& _commands;
 public:
     HelpCommand(std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands)
-        : commands(commands) {}
+        : _commands(commands) {}
     void handle(const ARG_VECTOR&) override;
     const char* getName() const override { return "help"; }
     const char* getDescription() const override { return "Show this help message"; }
-};
-
-class Menu {
-    Config config;
-    bool isExit{ false };
-    std::unordered_map<std::string, std::unique_ptr<MenuItem>> commands;
-public:
-    Menu()=default;
-    Menu(const Config& config) : config(config) { this->buildCommands(); }
-    void buildCommands();
-    void run();
 };
 
 ARG_VECTOR splitArgs(STRING_ARG input);

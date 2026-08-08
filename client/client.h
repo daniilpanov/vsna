@@ -5,13 +5,29 @@
 #include "config.h"
 #include "menu.h"
 
+
 class Client {
+public:
+    Client() : _config(Config()) {}
+    Config getConfig() const { return _config; };
+
 private:
     Config _config;
-    Menu _menu;
-        
+
+};
+
+
+class ClientCLI {
 public:
-    Client() : _config(Config()), _menu(Menu(_config)) {}
+    ClientCLI()=default;
+    ClientCLI(const Client* client) : _client(client), _config(client->getConfig()) { this->buildCommands(); }
     void CLIParse(int argc, char** argv);
-    void startCLI() const;
+    void buildCommands();
+    void run(int argc, char** argv);
+
+private:
+    const Client* _client;
+    Config _config;
+    bool _isExit{ false };
+    std::unordered_map<std::string, std::unique_ptr<MenuItem>> _commands;
 };
