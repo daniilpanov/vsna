@@ -5,7 +5,7 @@ void Client::CLIParse(int argc, char** argv) {
 
     std::string ip{ "0.0.0.0" };
     std::string port{ "5555" };
-    std::string path{ "path/to/" };
+    std::string path{ "/" };
     std::string configFile;
     
     app.add_option("-i,--ip", ip, "IP address of the server");

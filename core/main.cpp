@@ -2,6 +2,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <asio.hpp>
+#include "config.h"
 
 #if BUILD_SERVER
 #include "server.h"
@@ -22,6 +23,10 @@ int main(int argc, char* argv[]) {
 
     #if BUILD_CLIENT
     std::cout << "Built as a client." << std::endl; 
+    
+    Client client;
+    client.CLIParse(argc, argv);
+    client.startCLI();
     #endif
 
     return EXIT_SUCCESS;

@@ -15,6 +15,7 @@ public:
 
     void setIp(STRING_ARG);
     void setPort(STRING_ARG);
+    void setPort(const uint16_t port);
 
     const std::string toString() const {
         return _ip + ":" + std::to_string(_port);

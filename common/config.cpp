@@ -26,7 +26,7 @@ Config::Config(const Addr& addr, STRING_ARG _server_path) {
 }
 
 void Config::setAddr(const Addr& addr) {
-    this->addr = addr;
+    this->_addr = addr;
 }
 
 void Config::setPath(STRING_ARG _server_path) {    
@@ -50,18 +50,17 @@ void Config::setPath(STRING_ARG _server_path) {
             throw std::runtime_error("[!] Server path is not readable: " + _server_path);
         }
         
-        this->path = std::filesystem::canonical(path).string();
+        this->_path = std::filesystem::canonical(path).string();
     } catch (const std::filesystem::filesystem_error& e) {
         throw std::runtime_error("[!] Filesystem error: " + std::string(e.what()));
     }
 }
 
-std::string Config::getAddr() const {
-    return this->addr.toString();
-}
+Addr Config::getAddr() const { return this->_addr; }
+std::string Config::getPath() const { return this->_path; }
 
 std::string Config::toString() const {
     return std::string("[=] Config:\n") +
-        "ADDR: " + getAddr() + '\n' +
-        "PATH: " + this->path;
+        "ADDR: " + this->toString() + '\n' +
+        "PATH: " + this->getPath();
 }

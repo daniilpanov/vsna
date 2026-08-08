@@ -53,3 +53,10 @@ void Addr::setPort(STRING_ARG port) {
     }
     this->_port = port_num;
 }
+
+void Addr::setPort(const uint16_t port) {
+    if (port < 0 || port > 65535) {
+        throw std::out_of_range("[!] Port out of range (0-65535): " + std::to_string(port));
+    }
+    this->_port = port;
+}

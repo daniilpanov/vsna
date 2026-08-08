@@ -34,6 +34,8 @@ set(SERVER_SOURCES
 set(CLIENT_SOURCES
     ${CLIENT_DIR}/client.cpp
     ${CLIENT_DIR}/client.h
+    ${CLIENT_DIR}/menu.cpp
+    ${CLIENT_DIR}/menu.h
 )
 
 # Common
