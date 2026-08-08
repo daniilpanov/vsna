@@ -61,6 +61,6 @@ std::string Config::getPath() const { return this->_path; }
 
 std::string Config::toString() const {
     return std::string("[=] Config:\n") +
-        "ADDR: " + this->toString() + '\n' +
+        "ADDR: " + this->getAddr().toString() + '\n' +
         "PATH: " + this->getPath();
 }

@@ -11,6 +11,7 @@ out
 
 # Configuration
 __config__.json
+config.json
 
 # C++
 # Prerequisites
@@ -75,6 +76,7 @@ __cmake_systeminformation
 *.swp
 
 # vcpkg
+vcpkg/
 vcpkg_installed/
 
 # debug information files

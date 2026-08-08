@@ -27,7 +27,9 @@ cmd_build_no_vcpkg() {
     ( cmake -S . -B $BUILD_DIR \
         -DVCPKG_TARGET_TRIPLET=$TRIPLET \
         -DSERVER=$([[ "$MODE" == "server" ]] && echo ON || echo OFF) \
-        -DCLIENT=$([[ "$MODE" == "client" ]] && echo ON || echo OFF);
+        -DCLIENT=$([[ "$MODE" == "client" ]] && echo ON || echo OFF) \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_CXX_FLAGS="-g -O0 -fno-omit-frame-pointer";
       cmake --build $BUILD_DIR;
     )
 
