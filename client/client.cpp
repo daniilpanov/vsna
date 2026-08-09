@@ -1,5 +1,25 @@
 #include "client.h"
 
+void Client::print(CONST_ARG_VECTOR args) const {
+    std::cout << _config.toString() << std::endl;
+}
+
+void Client::showPath(CONST_ARG_VECTOR args) const {
+    std::cout << "Server path: " << _config.getPath() << std::endl;
+}
+
+void Client::myPath(CONST_ARG_VECTOR args) const {
+    std::cout << "Client path: " << _config.getPath() << std::endl;
+}
+
+void Client::sendFiles(CONST_ARG_VECTOR args) {
+
+}
+
+void Client::download(CONST_ARG_VECTOR args) {
+
+}
+
 void Client::connect() {
     try {
         Addr addr = _config.getAddr();

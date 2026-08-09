@@ -40,22 +40,23 @@ void ClientCLI::CLIParse(int argc, char** argv) {
 
 void ClientCLI::buildCommands() {
     auto add = [&](auto cmd) {
-        _commands[cmd->getName()] = std::move(cmd);
+        _commands[std::string(cmd->getName())] = std::move(cmd);
     };
     add(std::make_unique<HelpCommand>(_commands));
-    add(std::make_unique<ExitCommand>(_isExit));
-    add(std::make_unique<PrintCommand>(_config));
-    add(std::make_unique<MyPathCommand>(_config));
+    add(std::make_unique<ExitCommand>(_client));
+    add(std::make_unique<PrintCommand>(_client));
+    add(std::make_unique<MyPathCommand>(_client));
     add(std::make_unique<ConnectCommand>(_client));
-    add(std::make_unique<ShowPathCommand>(_config));
-    add(std::make_unique<DownloadCommand>(_config));
-    add(std::make_unique<SendFilesCommand>(_config));
+    add(std::make_unique<ShowPathCommand>(_client));
+    add(std::make_unique<DownloadCommand>(_client));
+    add(std::make_unique<SendFilesCommand>(_client));
 }
 
 void ClientCLI::run(int argc, char** argv) {
     this->CLIParse(argc, argv);
+    _client.setConfig(_config);
     this->buildCommands();
-    std::cout << _config.toString() << std::endl;
+    _client.print();
     
     std::string input;
     while (true) {

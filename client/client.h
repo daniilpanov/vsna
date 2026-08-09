@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <vector>
 #include <CLI11.hpp>
 #include <boost/asio.hpp>
 #include "config.h"
@@ -10,23 +11,26 @@ using tcp = boost::asio::ip::tcp;
 
 constexpr uint16_t max_length { 1024 };
 
-
 class Client {
+    Config _config;
+    boost::asio::io_context _io_context;
+    tcp::resolver _resolver;
+    tcp::socket _socket;
 public:
     Client() : 
         _config(Config()), 
-        _io_service(boost::asio::io_service()),
-        _resolver(tcp::resolver(_io_service)),
-        _socket(tcp::socket(_io_service))
+        _io_context(boost::asio::io_context()),
+        _resolver(tcp::resolver(_io_context)),
+        _socket(tcp::socket(_io_context))
     {}
 
-    void connect();
+    void setConfig(const Config& config) { _config = config; }
+    Config getConfig() const { return _config; }
 
-    Config getConfig() const { return _config; };
-
-private:
-    Config _config;
-    boost::asio::io_service _io_service;
-    tcp::resolver _resolver;
-    tcp::socket _socket;
+    void connect(CONST_ARG_VECTOR);
+    void print(CONST_ARG_VECTOR) const;
+    void showPath(CONST_ARG_VECTOR) const;
+    void myPath(CONST_ARG_VECTOR) const;
+    void sendFiles(CONST_ARG_VECTOR);
+    void download(CONST_ARG_VECTOR);
 };

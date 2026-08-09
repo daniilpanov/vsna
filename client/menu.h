@@ -2,90 +2,85 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
-#include <iostream>
-#include <algorithm>
-#include <boost/beast/websocket.hpp>
-#include <boost/beast/core.hpp>
 #include "config.h"
 #include "client.h"
 #include "types.h"
 
-class MenuItem{
+using CONST_ARG_VECTOR = const ARG_VECTOR&;
+
+class MenuItem {
+    Client& _client;
 public:
-    virtual ~MenuItem()=default;
-    virtual void handle(const ARG_VECTOR&)=0;
-    virtual const char* getName() const = 0;
-    virtual const char* getDescription() const = 0;
-    virtual const char* getUsage() const { return ""; }
+    virtual ~MenuItem() = default;
+    explicit MenuItem(Client& client) : _client(client) {}
+    virtual void handle(CONST_ARG_VECTOR) = 0;
+    virtual std::string_view getName() const = 0;
+    virtual std::string_view getDescription() const = 0;
+    virtual std::string_view getUsage() const { return {}; }
 };
 
 class ConnectCommand : public MenuItem {
-    Client* _client;
 public:
-    ConnectCommand(Client* client) : _client(client) {}
-    void handle(const ARG_VECTOR&) override;
-    const char* getName() const override { return "connect"; }
-    const char* getDescription() const override { return "Connect to the server"; }
-    const char* getUsage() const override { return "<ip:port>"; }
+    explicit ConnectCommand(Client& client) : MenuItem(client) {}
+    void handle(CONST_ARG_VECTOR args) override { _client.connect(args); };
+    std::string_view getName() const override { return "connect"; }
+    std::string_view getDescription() const override { return "Connect to the server"; }
+    std::string_view getUsage() const override { return "[ip:port]"; }
 };
 
 class ShowPathCommand : public MenuItem {
-    const Config& config;
+    Client& _client;
 public:
-    ShowPathCommand(const Config& config) : config(config) {}
-    void handle(const ARG_VECTOR&) override;
-    const char* getName() const override { return "path"; }
-    const char* getDescription() const override { return "Show the server path"; }
-    const char* getUsage() const override { return "[name]"; }
+    explicit ShowPathCommand(Client& client) : MenuItem(client) {}
+    void handle(CONST_ARG_VECTOR args) override { _client.showPath(args); };
+    std::string_view getName() const override { return "path"; }
+    std::string_view getDescription() const override { return "Show the server path"; }
+    std::string_view getUsage() const override { return "[name]"; }
 };
 
 class MyPathCommand : public MenuItem {
-    const Config& _config;
 public:
-    MyPathCommand(const Config& config) : _config(config) {}
-    void handle(const ARG_VECTOR&) override;
-    const char* getName() const override { return "mypath"; }
-    const char* getDescription() const override { return "Show the client path"; }
-    const char* getUsage() const override { return "[name]"; }
+    explicit MyPathCommand(Client& client) : MenuItem(client) {}
+    void handle(CONST_ARG_VECTOR args) override { _client.myPath(args); };
+    std::string_view getName() const override { return "mypath"; }
+    std::string_view getDescription() const override { return "Show the client path"; }
+    std::string_view getUsage() const override { return "[name]"; }
 };
 
 class SendFilesCommand : public MenuItem {
-    const Config& _config;
 public:
-    SendFilesCommand(const Config& config) : _config(config) {}
-    void handle(const ARG_VECTOR&) override;
-    const char* getName() const override { return "send"; }
-    const char* getDescription() const override { return "Send files to the server"; }
-    const char* getUsage() const override { return "<file1> [file2] ..."; }
+    explicit SendFilesCommand(Client& client) : MenuItem(client) {}
+    void handle(CONST_ARG_VECTOR args) override { _client.sendFiles(args); };
+    std::string_view getName() const override { return "send"; }
+    std::string_view getDescription() const override { return "Send files to the server"; }
+    std::string_view getUsage() const override { return "<file1 | path1> [file2] ..."; }
 };
 
 class DownloadCommand : public MenuItem {
-    const Config& _config;
 public:
-    DownloadCommand(const Config& config) : _config(config) {}
-    void handle(const ARG_VECTOR&) override;
-    const char* getName() const override { return "download"; }
-    const char* getDescription() const override { return "Download files from the server"; }
-    const char* getUsage() const override { return "<file1 | path1> [file2] ..."; }
+    explicit DownloadCommand(Client& client) : MenuItem(client) {}
+    void handle(CONST_ARG_VECTOR args) override { _client.download(args); };
+    std::string_view getName() const override { return "download"; }
+    std::string_view getDescription() const override { return "Download files from the server"; }
+    std::string_view getUsage() const override { return "<file1 | path1> [file2] ..."; }
 };
 
 class ExitCommand : public MenuItem {
-    bool& _isExit;
 public:
-    ExitCommand(bool& exitFlag) : _isExit(exitFlag) {}
-    void handle(const ARG_VECTOR&) override;
-    const char* getName() const override { return "exit"; }
-    const char* getDescription() const override { return "Exit the program"; }
+    explicit ExitCommand(Client& client) : MenuItem(client) {}
+    void handle(CONST_ARG_VECTOR args) override { _client.exit(args); };
+    std::string_view getName() const override { return "exit"; }
+    std::string_view getDescription() const override { return "Exit the program"; }
 };
 
 class PrintCommand : public MenuItem {
-    const Config& _config;
 public:
-    PrintCommand(const Config& config) : _config(config) {}
-    void handle(const ARG_VECTOR&) override;
-    const char* getName() const override { return "print"; }
-    const char* getDescription() const override { return "Print the current path"; }
+    explicit PrintCommand(Client& client) : MenuItem(client) {}
+    void handle(CONST_ARG_VECTOR args) override { _client.print(args); };
+    std::string_view getName() const override { return "print"; }
+    std::string_view getDescription() const override { return "Print the current path"; }
 };
 
 class HelpCommand : public MenuItem {
@@ -93,10 +88,7 @@ class HelpCommand : public MenuItem {
 public:
     HelpCommand(std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands)
         : _commands(commands) {}
-    void handle(const ARG_VECTOR&) override;
-    const char* getName() const override { return "help"; }
-    const char* getDescription() const override { return "Show this help message"; }
+    void handle(CONST_ARG_VECTOR args) override { _client.help(args); };
+    std::string_view getName() const override { return "help"; }
+    std::string_view getDescription() const override { return "Show this help message"; }
 };
-
-ARG_VECTOR splitArgs(STRING_ARG input);
-std::string toLowerCase(STRING_ARG str);

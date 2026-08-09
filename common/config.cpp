@@ -53,7 +53,7 @@ void Config::setPath(STRING_ARG _server_path) {
         
         this->_path = std::filesystem::canonical(path).string();
     } catch (const std::filesystem::filesystem_error& e) {
-        throw std::runtime_error("[!] Filesystem error: " + e.what());
+        throw std::runtime_error("[!] Filesystem error: " + std::string(e.what()));
     }
 }
 
