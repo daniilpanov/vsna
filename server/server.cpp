@@ -21,7 +21,8 @@ void start_server(const Config& config) {
             // Accept the connect request
             boost::beast::websocket::stream<tcp::socket> ws {std::move(q)};
             ws.accept();
-
+            std::cout << "Accepted a connect!\n";
+            
             // Read the message
             while(1) {
                 boost::beast::flat_buffer buffer;

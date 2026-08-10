@@ -28,7 +28,7 @@ public:
     Config getConfig() const { return _config; }
 
     void connect(CONST_ARG_VECTOR);
-    void print(CONST_ARG_VECTOR) const;
+    void print() const;
     void showPath(CONST_ARG_VECTOR) const;
     void myPath(CONST_ARG_VECTOR) const;
     void sendFiles(CONST_ARG_VECTOR);

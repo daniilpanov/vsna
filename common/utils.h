@@ -5,7 +5,7 @@
 
 #include "types.h"
 
-ARG_VECTOR splitArgs(STRING_ARG input) {
+inline ARG_VECTOR splitArgs(STRING_ARG input) {
     ARG_VECTOR args;
     std::stringstream ss(input);
     std::string token;
@@ -15,7 +15,7 @@ ARG_VECTOR splitArgs(STRING_ARG input) {
     return args;
 }
 
-std::string toLowerCase(STRING_ARG str) {
+inline std::string toLowerCase(STRING_ARG str) {
     std::string result = str;
     std::transform(result.begin(), result.end(), result.begin(), ::tolower);
     return result;

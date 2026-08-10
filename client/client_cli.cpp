@@ -42,8 +42,8 @@ void ClientCLI::buildCommands() {
     auto add = [&](auto cmd) {
         _commands[std::string(cmd->getName())] = std::move(cmd);
     };
-    add(std::make_unique<HelpCommand>(_commands));
-    add(std::make_unique<ExitCommand>(_client));
+    add(std::make_unique<HelpCommand>(_client, _commands));
+    add(std::make_unique<ExitCommand>(_client, _isExit));
     add(std::make_unique<PrintCommand>(_client));
     add(std::make_unique<MyPathCommand>(_client));
     add(std::make_unique<ConnectCommand>(_client));

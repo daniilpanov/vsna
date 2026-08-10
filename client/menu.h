@@ -8,9 +8,8 @@
 #include "client.h"
 #include "types.h"
 
-using CONST_ARG_VECTOR = const ARG_VECTOR&;
-
 class MenuItem {
+protected:
     Client& _client;
 public:
     virtual ~MenuItem() = default;
@@ -31,7 +30,6 @@ public:
 };
 
 class ShowPathCommand : public MenuItem {
-    Client& _client;
 public:
     explicit ShowPathCommand(Client& client) : MenuItem(client) {}
     void handle(CONST_ARG_VECTOR args) override { _client.showPath(args); };
@@ -68,9 +66,10 @@ public:
 };
 
 class ExitCommand : public MenuItem {
+    bool& _isExit;
 public:
-    explicit ExitCommand(Client& client) : MenuItem(client) {}
-    void handle(CONST_ARG_VECTOR args) override { _client.exit(args); };
+    explicit ExitCommand(Client& client, bool& exitFlag) : MenuItem(client), _isExit(exitFlag) {}
+    void handle(CONST_ARG_VECTOR args) override;
     std::string_view getName() const override { return "exit"; }
     std::string_view getDescription() const override { return "Exit the program"; }
 };
@@ -78,7 +77,7 @@ public:
 class PrintCommand : public MenuItem {
 public:
     explicit PrintCommand(Client& client) : MenuItem(client) {}
-    void handle(CONST_ARG_VECTOR args) override { _client.print(args); };
+    void handle(CONST_ARG_VECTOR args) override { _client.print(); };
     std::string_view getName() const override { return "print"; }
     std::string_view getDescription() const override { return "Print the current path"; }
 };
@@ -86,9 +85,9 @@ public:
 class HelpCommand : public MenuItem {
     std::unordered_map<std::string, std::unique_ptr<MenuItem>>& _commands;
 public:
-    HelpCommand(std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands)
-        : _commands(commands) {}
-    void handle(CONST_ARG_VECTOR args) override { _client.help(args); };
+    HelpCommand(Client& client, std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands)
+        : MenuItem(client), _commands(commands) {}
+    void handle(CONST_ARG_VECTOR args) override;
     std::string_view getName() const override { return "help"; }
     std::string_view getDescription() const override { return "Show this help message"; }
 };

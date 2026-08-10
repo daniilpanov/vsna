@@ -21,11 +21,12 @@ set(SERVER_DIR   ${PROJECT_ROOT}/server)
 set(CLIENT_DIR   ${PROJECT_ROOT}/client)
 
 # Sources
+# TOOO : Can be replaced with file(GLOB_RECURSE)
 set(COMMON_SOURCES
     ${COMMON_DIR}/addr.cpp
     ${COMMON_DIR}/addr.h
     ${COMMON_DIR}/config.cpp 
-    ${COMMON_DIR}/config.h 
+    ${COMMON_DIR}/config.h
 )
 set(SERVER_SOURCES
     ${SERVER_DIR}/server.cpp

@@ -1,6 +1,6 @@
 #include "client.h"
 
-void Client::print(CONST_ARG_VECTOR args) const {
+void Client::print() const {
     std::cout << _config.toString() << std::endl;
 }
 
@@ -20,7 +20,7 @@ void Client::download(CONST_ARG_VECTOR args) {
 
 }
 
-void Client::connect() {
+void Client::connect(CONST_ARG_VECTOR args) {
     try {
         Addr addr = _config.getAddr();
         tcp::resolver::query query(tcp::v4(), addr.ip(), addr.port());
