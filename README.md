@@ -1,36 +1,76 @@
 # VSNA
-**Virtual Storage and Network Access** is open-source CLI project, implemented on C++ to exchange data between devices on a _VLAN_.
+**Virtual Storage and Network Access** is open-source CLI project, implemented on C++, to exchange data between devices on a _VLAN_.
 
 # Dependencies
 - `boost` - asio + beast (_websocket_);
-<!-- - `CLI11` - command line interface parser.
-- `nlohmann/json` - JSON parsing library; -->
+- `CLI11` - command line interface parser;
+- `nlohmann/json` - JSON parsing library.
 
-# To run
-First you need to initialize boost via vcpkg, if you don't have it;. This is done once.:
+# Build
+First you need to initialize boost via `vcpkg`.
 
-**Boost initialization**
+If you don't have it, you can install it by running:
+
 ```bash
-.\init.boost.bat
+.\init_modules.bat --init
 ```
 
 You can see more commands by:
 
 ```bash
-.\init_boost.bat --help
+.\init_modules.bat --help
 ```
 
 **Default build**
 
-Then you can build the project:
+Then you can build the project (for client or server):
 
 ```bash
-.\build.bat
+.\build.bat [--client|--server]
 ```
 
 If you use Unix system, you can do the same actions via Shell scripts:
 
-```shell
-./init_boost.sh
+```bash
+./init_modules.sh
 ./build.sh # See more flags with --help
 ```
+
+# To run
+**Client**
+
+- With CLI flags:
+
+```bash
+.\out\Debug\vsna.exe -i 127.0.0.1 -p 5555 -d \
+```
+
+- With config file:
+
+```bash
+.\out\Debug\vsna.exe -c config.example.json
+```
+
+**Server**
+
+- With CLI flags:
+
+```bash
+.\out\Debug\vsna.exe -i 0.0.0.0 -p 5555 -d \
+```
+
+- With config file:
+
+```bash
+.\out\Debug\vsna.exe -c config.example.json
+```
+
+**CLI Scheme**
+
+|Short, Long name|Description|Default value|
+|---|---|---|
+| `-h`, `--help` | show help message |-|
+| `-p`, `--port <port>` | set port | 8080 |
+| `-i`, `--ip <ip>` | set server address | 0.0.0.0 |
+| `-d`, `--dir <path>` | set client/server path | <current directory> |
+| `-c`, `--config <path>` | set config file path | none |

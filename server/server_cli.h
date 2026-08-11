@@ -6,7 +6,6 @@
 #include <boost/asio.hpp>
 #include "server.h"
 #include "config.h"
-#include "menu.h"
 #include "utils.h"
 
 class ServerCLI {

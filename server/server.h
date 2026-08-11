@@ -12,12 +12,12 @@ using socket_ptr = boost::shared_ptr<tcp::socket>;
 
 class Server {
     Config _config;
-    boost::asio::io_service _io_service;
+    boost::asio::io_context _io_context;
     
 public:
     Server(): 
         _config(Config()),
-        _io_service(boost::asio::io_service())
+        _io_context(boost::asio::io_context())
     {}
 
     void setConfig(const Config& config) { _config = config; }

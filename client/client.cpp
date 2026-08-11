@@ -24,13 +24,13 @@ void Client::connect(CONST_ARG_VECTOR args) {
     try {
         const Addr addr = _config.getAddr();
 
-        socket_ptr sock(new tcp::socket(_io_service));
-        tcp::resolver::iterator it = _resolver.resolve(addr.ip(), addr.port());
+        socket_ptr sock(new tcp::socket(_io_context));
+        auto results = _resolver.resolve(addr.ip(), addr.port());
 
-        boost::asio::connect(*sock, it);
+        boost::asio::connect(*sock, results);
         std::cout << "Connected to " << addr.toString() << std::endl;
 
-        boost::thread(&session, sock).join();
+        std::thread(&session, sock).join();
     }
     catch (const std::exception& e) {
         std::cerr << "Connection exception: "

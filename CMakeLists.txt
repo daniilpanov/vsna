@@ -57,9 +57,9 @@ add_executable(${PROJECT_NAME} ${CORE_SRCS} ${CORE_HDRS})
 set(BOOST_REQUIRED_COMPONENTS
     filesystem
     system
-    thread
 )
 find_package(Boost REQUIRED COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
+find_package(Threads REQUIRED)
 
 if (Boost_FOUND)
     add_definitions(-DHAS_BOOST)
@@ -67,7 +67,7 @@ if (Boost_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE 
         Boost::headers
         ${Boost_LIBRARIES}
-        pthread
+        Threads::Threads
     )
     message("-- Boost status: Found")
 else()
@@ -77,11 +77,13 @@ endif()
 # Common
 add_library(common STATIC ${COMMON_SOURCES})
 target_include_directories(common PUBLIC ${COMMON_DIR})
+target_link_libraries(common PUBLIC Boost::headers)
 target_link_libraries(${PROJECT_NAME} PRIVATE common)
 
 # Net
 add_library(net STATIC ${NET_SOURCES})
 target_include_directories(net PUBLIC ${NET_DIR} ${COMMON_DIR})
+target_link_libraries(net PUBLIC common Boost::headers)
 target_link_libraries(${PROJECT_NAME} PRIVATE net)
 
 # Server
