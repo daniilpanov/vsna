@@ -31,6 +31,8 @@ set(COMMON_SOURCES
 set(SERVER_SOURCES
     ${SERVER_DIR}/server.cpp
     ${SERVER_DIR}/server.h
+    ${SERVER_DIR}/server_cli.cpp
+    ${SERVER_DIR}/server_cli.h
 )
 set(CLIENT_SOURCES
     ${CLIENT_DIR}/client_cli.cpp

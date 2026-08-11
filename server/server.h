@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <thread>
 #include <boost/beast/websocket.hpp>
@@ -6,4 +7,14 @@
 
 using tcp = boost::asio::ip::tcp;
 
-void start_server(const Config&);
+class Server {
+    Config _config;
+    
+public:
+    Server(): _config(Config()) {}
+
+    void setConfig(const Config& config) { _config = config; }
+    Config getConfig() const { return _config; }
+    
+    void start();
+};

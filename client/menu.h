@@ -20,6 +20,7 @@ public:
     virtual std::string_view getUsage() const { return {}; }
 };
 
+
 class ConnectCommand : public MenuItem {
 public:
     explicit ConnectCommand(Client& client) : MenuItem(client) {}
@@ -28,6 +29,7 @@ public:
     std::string_view getDescription() const override { return "Connect to the server"; }
     std::string_view getUsage() const override { return "[ip:port]"; }
 };
+
 
 class ShowPathCommand : public MenuItem {
 public:
@@ -38,6 +40,7 @@ public:
     std::string_view getUsage() const override { return "[name]"; }
 };
 
+
 class MyPathCommand : public MenuItem {
 public:
     explicit MyPathCommand(Client& client) : MenuItem(client) {}
@@ -46,6 +49,7 @@ public:
     std::string_view getDescription() const override { return "Show the client path"; }
     std::string_view getUsage() const override { return "[name]"; }
 };
+
 
 class SendFilesCommand : public MenuItem {
 public:
@@ -56,6 +60,7 @@ public:
     std::string_view getUsage() const override { return "<file1 | path1> [file2] ..."; }
 };
 
+
 class DownloadCommand : public MenuItem {
 public:
     explicit DownloadCommand(Client& client) : MenuItem(client) {}
@@ -64,6 +69,16 @@ public:
     std::string_view getDescription() const override { return "Download files from the server"; }
     std::string_view getUsage() const override { return "<file1 | path1> [file2] ..."; }
 };
+
+
+class PrintCommand : public MenuItem {
+public:
+    explicit PrintCommand(Client& client) : MenuItem(client) {}
+    void handle(CONST_ARG_VECTOR args) override { _client.print(); };
+    std::string_view getName() const override { return "print"; }
+    std::string_view getDescription() const override { return "Print the current path"; }
+};
+
 
 class ExitCommand : public MenuItem {
     bool& _isExit;
@@ -74,13 +89,6 @@ public:
     std::string_view getDescription() const override { return "Exit the program"; }
 };
 
-class PrintCommand : public MenuItem {
-public:
-    explicit PrintCommand(Client& client) : MenuItem(client) {}
-    void handle(CONST_ARG_VECTOR args) override { _client.print(); };
-    std::string_view getName() const override { return "print"; }
-    std::string_view getDescription() const override { return "Print the current path"; }
-};
 
 class HelpCommand : public MenuItem {
     std::unordered_map<std::string, std::unique_ptr<MenuItem>>& _commands;

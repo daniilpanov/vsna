@@ -1,24 +1,22 @@
 #include <iostream>
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <asio.hpp>
-#include "config.h"
+#include <boost/asio.hpp>
 
 #if BUILD_SERVER
-#include "server.h"
+#include "server_cli.h"
 #endif
 
 #if BUILD_CLIENT
 #include "client_cli.h"
 #endif
 
-int main(int argc, char* argv[]) {
-    std::string config_path = "config.json";
-    Config config = Config::loadFromFile(config_path);    
-
+int main(int argc, char* argv[]) {   
     #if BUILD_SERVER
     std::cout << "Built as a server." << std::endl;
-    start_server(config);
+
+    ServerCLI server;
+    server.run(argc, argv);
     #endif
 
     #if BUILD_CLIENT

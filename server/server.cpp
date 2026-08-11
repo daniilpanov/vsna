@@ -1,8 +1,8 @@
 #include "server.h"
 
-void start_server(const Config& config) {
+void Server::start() {
     // Parse the config
-    Addr const addr = config.getAddr();
+    Addr const addr = _config.getAddr();
     auto const ip = boost::asio::ip::make_address(addr.ip());
     auto const port = addr.portNum();
 

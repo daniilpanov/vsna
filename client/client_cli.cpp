@@ -1,9 +1,9 @@
 #include "client_cli.h"
 
 void ClientCLI::CLIParse(int argc, char** argv) {
-    CLI::App app{ "VSNA" };
+    CLI::App app{ "VSNA Client" };
 
-    std::string ip{ "0.0.0.0" };
+    std::string ip{ "127.0.0.1" }; // localhost
     std::string port{ "5555" };
     std::string path{ "/" };
     std::string configFile;
@@ -24,7 +24,7 @@ void ClientCLI::CLIParse(int argc, char** argv) {
     if (!configFile.empty()) {
         if (std::filesystem::exists(configFile)) {
             try {
-                this->_config = Config::loadFromFile(configFile);
+                this->_client.setConfig(Config::loadFromFile(configFile));
             } catch (const std::exception& e) {
                 std::cerr << e.what() << std::endl;
                 exit(-1);
@@ -34,7 +34,7 @@ void ClientCLI::CLIParse(int argc, char** argv) {
             exit(-1);
         }
     } else {
-        this->_config = Config(Addr(ip, port), path);
+        this->_client.setConfig(Config(Addr(ip, port), path));
     }
 }
 

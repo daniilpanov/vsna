@@ -14,6 +14,7 @@ class Client {
     boost::asio::io_context _io_context;
     tcp::resolver _resolver;
     tcp::socket _socket;
+    
 public:
     Client() : 
         _config(Config()), 
