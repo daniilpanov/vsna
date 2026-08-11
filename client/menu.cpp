@@ -3,7 +3,7 @@
 
 void ExitCommand::handle(CONST_ARG_VECTOR args) {
     _isExit = true;
-    std::cout << "[~] Programm was exit." << std::endl;
+    std::cout << "[~] Program was exit." << std::endl;
 }
 
 void HelpCommand::handle(CONST_ARG_VECTOR args) {

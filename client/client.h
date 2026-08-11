@@ -2,11 +2,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <CLI11.hpp>
 #include <boost/asio.hpp>
 #include "config.h"
 
-using boost::asio::ip::tcp;
 using tcp = boost::asio::ip::tcp;
 
 constexpr uint16_t max_length { 1024 };
