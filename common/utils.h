@@ -5,6 +5,8 @@
 
 #include "types.h"
 
+constexpr uint16_t max_length { 1024 };
+
 inline ARG_VECTOR splitArgs(STRING_ARG input) {
     ARG_VECTOR args;
     std::stringstream ss(input);

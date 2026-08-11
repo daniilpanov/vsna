@@ -17,6 +17,7 @@ option(CLIENT "Build client binary" OFF)
 # Paths
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(COMMON_DIR   ${PROJECT_ROOT}/common)
+set(NET_DIR      ${PROJECT_ROOT}/net)
 set(SERVER_DIR   ${PROJECT_ROOT}/server)
 set(CLIENT_DIR   ${PROJECT_ROOT}/client)
 
@@ -27,6 +28,10 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/addr.h
     ${COMMON_DIR}/config.cpp 
     ${COMMON_DIR}/config.h
+)
+set(NET_SOURCES
+    ${NET_DIR}/session.cpp
+    ${NET_DIR}/session.h
 )
 set(SERVER_SOURCES
     ${SERVER_DIR}/server.cpp
@@ -43,39 +48,16 @@ set(CLIENT_SOURCES
     ${CLIENT_DIR}/menu.h
 )
 
-# Common
-add_library(common STATIC ${COMMON_SOURCES})
-target_include_directories(common PUBLIC ${COMMON_DIR})
-
-# Server
-add_library(server STATIC ${SERVER_SOURCES})
-target_link_libraries(server PRIVATE common)
-target_include_directories(server PUBLIC ${SERVER_DIR} ${COMMON_DIR})
-
-# Client
-add_library(client STATIC ${CLIENT_SOURCES})
-target_link_libraries(client PRIVATE common)
-target_include_directories(client PUBLIC ${CLIENT_DIR} ${COMMON_DIR})
-
 # Core
 file(GLOB_RECURSE CORE_SRCS "${PROJECT_ROOT}/core/*.cpp")
 file(GLOB_RECURSE CORE_HDRS "${PROJECT_ROOT}/core/*.h")
-
 add_executable(${PROJECT_NAME} ${CORE_SRCS} ${CORE_HDRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE common)
-target_include_directories(${PROJECT_NAME} PRIVATE ${COMMON_DIR})
-
-# Copy config.json
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/config.json
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>/config.json
-)
 
 # Boost
 set(BOOST_REQUIRED_COMPONENTS
     filesystem
     system
+    thread
 )
 find_package(Boost REQUIRED COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
 
@@ -85,19 +67,49 @@ if (Boost_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE 
         Boost::headers
         ${Boost_LIBRARIES}
+        pthread
     )
     message("-- Boost status: Found")
 else()
     message(FATAL_ERROR "-- Boost status: Not found")
 endif()
 
+# Common
+add_library(common STATIC ${COMMON_SOURCES})
+target_include_directories(common PUBLIC ${COMMON_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE common)
+
+# Net
+add_library(net STATIC ${NET_SOURCES})
+target_include_directories(net PUBLIC ${NET_DIR} ${COMMON_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE net)
+
+# Server
+add_library(server STATIC ${SERVER_SOURCES})
+target_link_libraries(server PRIVATE common net)
+target_include_directories(server PUBLIC ${SERVER_DIR} ${COMMON_DIR})
+
+# Client
+add_library(client STATIC ${CLIENT_SOURCES})
+target_link_libraries(client PRIVATE common net)
+target_include_directories(client PUBLIC ${CLIENT_DIR} ${COMMON_DIR})
+
+# Copy config.json
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_SOURCE_DIR}/config.json
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>/config.json
+)
+
 # Compile definitions
 if (SERVER)
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_SERVER=1)
+    target_compile_definitions(net PRIVATE BUILD_SERVER=1)
     target_link_libraries(${PROJECT_NAME} PRIVATE server)
     target_include_directories(${PROJECT_NAME} PRIVATE ${SERVER_DIR})
 elseif (CLIENT)
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_CLIENT=1)
+    target_compile_definitions(net PRIVATE BUILD_CLIENT=1)
     target_link_libraries(${PROJECT_NAME} PRIVATE client)
     target_include_directories(${PROJECT_NAME} PRIVATE ${CLIENT_DIR})
 else()

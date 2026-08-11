@@ -54,7 +54,6 @@ void ClientCLI::buildCommands() {
 
 void ClientCLI::run(int argc, char** argv) {
     this->CLIParse(argc, argv);
-    _client.setConfig(_config);
     this->buildCommands();
     _client.print();
     
