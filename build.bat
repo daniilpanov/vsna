@@ -62,7 +62,7 @@ exit /b 0
 
 :cmd_build_via_vcpkg
 if not exist "%VCPKG_DIR%" (
-echo -- Error: vcpkg not found. Run init_boost.bat or place vcpkg in %VCPKG_DIR%
+echo -- Error: vcpkg not found. Run init_modules.bat or place vcpkg in %VCPKG_DIR%
 popd
 exit /b 1
 )

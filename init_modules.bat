@@ -51,6 +51,14 @@ if errorlevel 1 (
 
 vcpkg integrate install
 popd
+echo -- Installed Boost
+
+wget -P common/libs https://github.com/CLIUtils/CLI11/releases/download/v2.7.2/CLI11.hpp
+echo -- Installed CLI11
+
+wget -P common/libs https://github.com/nlohmann/json/releases/download/v3.12.0/json.hpp
+echo -- Installed nlohmann/json
+
 goto :cmd_ending
 
 :cmd_clean

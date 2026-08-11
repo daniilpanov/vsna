@@ -40,7 +40,7 @@ cmd_build_no_vcpkg() {
 cmd_build_via_vcpkg() {
     mkdir -p ${BUILD_DIR}
     if [ ! -d "$VCPKG_DIR" ]; then
-        echo "-- Error: vcpkg not found. Run ./init_boost.sh"
+        echo "-- Error: vcpkg not found. Run ./init_modules.sh"
         exit 1
     fi
     ( cmake -S . -B $BUILD_DIR \
