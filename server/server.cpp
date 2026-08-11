@@ -9,7 +9,8 @@ void Server::start() {
     for (;;) {
         socket_ptr sock(new tcp::socket(_io_service));
         a.accept(*sock);
-        boost::thread t(boost::thread(session, sock));
         std::cout << "Accepted a connect!\n";
+
+        boost::thread(&session, sock).detach();
     } 
 }
