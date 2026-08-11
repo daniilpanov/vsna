@@ -22,8 +22,9 @@ echo Usage:
 echo   --init   Init vcpkg and install boost
 echo   --clean  Delete vcpkg folder
 echo   --help   Look commands
+goto :cmd_ending
 
-:cmd_build
+:cmd_init
 if not exist "%VCPKG_DIR%" (
     git clone %VCPKG_REPO% "%VCPKG_DIR%"
     if errorlevel 1 (

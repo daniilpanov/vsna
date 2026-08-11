@@ -13,6 +13,8 @@ set "TRIPLET=x64-windows"
 set "TYPE="
 set "MODE="
 
+goto :parse_loop
+
 :usage
 echo Usage: %~nx0 ^<command^>
 echo Commands:
