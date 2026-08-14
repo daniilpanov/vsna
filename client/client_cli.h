@@ -11,11 +11,11 @@
 #include "utils.h"
 
 class ClientCLI {
-    Client _client;
+    std::shared_ptr<Client> _client;
     bool _isExit{ false };
     std::unordered_map<std::string, std::unique_ptr<MenuItem>> _commands;
 public:
-    ClientCLI() = default;
+    ClientCLI() : _client(std::make_shared<Client>()) {}
     void CLIParse(int argc, char** argv);
     void buildCommands();
     void run(int argc, char** argv);

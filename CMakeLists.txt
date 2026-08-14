@@ -17,7 +17,6 @@ option(CLIENT "Build client binary" OFF)
 # Paths
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(COMMON_DIR   ${PROJECT_ROOT}/common)
-set(NET_DIR      ${PROJECT_ROOT}/net)
 set(SERVER_DIR   ${PROJECT_ROOT}/server)
 set(CLIENT_DIR   ${PROJECT_ROOT}/client)
 
@@ -29,15 +28,12 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/config.cpp 
     ${COMMON_DIR}/config.h
 )
-set(NET_SOURCES
-    ${NET_DIR}/session.cpp
-    ${NET_DIR}/session.h
-)
 set(SERVER_SOURCES
     ${SERVER_DIR}/server.cpp
     ${SERVER_DIR}/server.h
     ${SERVER_DIR}/server_cli.cpp
     ${SERVER_DIR}/server_cli.h
+    ${SERVER_DIR}/session.cpp
 )
 set(CLIENT_SOURCES
     ${CLIENT_DIR}/client_cli.cpp
@@ -46,12 +42,14 @@ set(CLIENT_SOURCES
     ${CLIENT_DIR}/client.h
     ${CLIENT_DIR}/menu.cpp
     ${CLIENT_DIR}/menu.h
+    ${CLIENT_DIR}/session.cpp
 )
 
 # Core
 file(GLOB_RECURSE CORE_SRCS "${PROJECT_ROOT}/core/*.cpp")
 file(GLOB_RECURSE CORE_HDRS "${PROJECT_ROOT}/core/*.h")
 add_executable(${PROJECT_NAME} ${CORE_SRCS} ${CORE_HDRS})
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${APP_NAME}")
 
 # Boost
 set(BOOST_REQUIRED_COMPONENTS
@@ -80,20 +78,14 @@ target_include_directories(common PUBLIC ${COMMON_DIR})
 target_link_libraries(common PUBLIC Boost::headers)
 target_link_libraries(${PROJECT_NAME} PRIVATE common)
 
-# Net
-add_library(net STATIC ${NET_SOURCES})
-target_include_directories(net PUBLIC ${NET_DIR} ${COMMON_DIR})
-target_link_libraries(net PUBLIC common Boost::headers)
-target_link_libraries(${PROJECT_NAME} PRIVATE net)
-
 # Server
 add_library(server STATIC ${SERVER_SOURCES})
-target_link_libraries(server PRIVATE common net)
+target_link_libraries(server PRIVATE common)
 target_include_directories(server PUBLIC ${SERVER_DIR} ${COMMON_DIR})
 
 # Client
 add_library(client STATIC ${CLIENT_SOURCES})
-target_link_libraries(client PRIVATE common net)
+target_link_libraries(client PRIVATE common)
 target_include_directories(client PUBLIC ${CLIENT_DIR} ${COMMON_DIR})
 
 # Copy config.json
@@ -106,12 +98,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 # Compile definitions
 if (SERVER)
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_SERVER=1)
-    target_compile_definitions(net PRIVATE BUILD_SERVER=1)
     target_link_libraries(${PROJECT_NAME} PRIVATE server)
     target_include_directories(${PROJECT_NAME} PRIVATE ${SERVER_DIR})
 elseif (CLIENT)
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_CLIENT=1)
-    target_compile_definitions(net PRIVATE BUILD_CLIENT=1)
     target_link_libraries(${PROJECT_NAME} PRIVATE client)
     target_include_directories(${PROJECT_NAME} PRIVATE ${CLIENT_DIR})
 else()

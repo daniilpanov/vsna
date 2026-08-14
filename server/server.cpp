@@ -1,16 +1,95 @@
 #include "server.h"
 
-void Server::start() {
-    Addr addr = _config.getAddr();
-    tcp::acceptor a(_io_context, tcp::endpoint(tcp::v4(), addr.portNum()));
+Server::Server(): 
+        _config(),
+        _io_context(max_threads),
+        _acceptor(_io_context)
+    {
+        beast::error_code ec;
+        tcp::endpoint endpoint(
+            asio::ip::make_address(_config.getAddr().ip()),
+            _config.getAddr().portNum()
+        );
 
-    std::cout << "Addr: " << addr.toString() << std::endl;
-    std::cout << "Listening for the connect...\n";
-    for (;;) {
-        socket_ptr sock(new tcp::socket(_io_context));
-        a.accept(*sock);
-        std::cout << "Accepted a connect!\n";
+        // Open the acceptor
+        _acceptor.open(endpoint.protocol(), ec);
+        if (ec) {
+            fail(ec, "open");
+            return;
+        }
 
-        std::thread(&session, sock).detach();
-    } 
+        // Allow address reuse
+        _acceptor.set_option(
+            asio::socket_base::reuse_address(true), ec
+        );
+        if (ec) {
+            fail(ec, "set_oprion");
+            return;
+        }
+
+        // Bind to the server address
+        _acceptor.bind(endpoint, ec);
+        if (ec) {
+            fail(ec, "bind");
+            return;
+        }
+
+        // Start listening for connections
+        _acceptor.listen(
+            asio::socket_base::max_listen_connections, ec
+        );
+        if (ec) {
+            fail(ec, "listen");
+            return;
+        }
+    }
+
+
+void Server::run() {
+    start_accept();
+    std::cout << "Server is running on " << _config.getAddr().toString() << std::endl;
+
+    _threads.reserve(max_threads - 1);
+
+    for (size_t i = 0; i < max_threads - 1; ++i) {
+        _threads.emplace_back(
+            [this] {
+                _io_context.run();
+            }
+        );
+        std::cout << "Thread " << i + 1 << " started." << std::endl;
+    }
+
+    std::cout << "Main thread started." << std::endl;
+    _io_context.run();
+}
+
+
+void Server::start_accept() {
+    do_accept();
+}
+
+
+void Server::do_accept() {
+    // The new connection gets its own strand
+    _acceptor.async_accept(
+        asio::make_strand(_io_context),
+        beast::bind_front_handler(
+            &Server::on_accept, shared_from_this()
+        )
+    );
+}
+
+
+void Server::on_accept(beast::error_code ec, tcp::socket socket) {
+    if (ec) {
+        fail(ec, "accept");
+    }
+    else {
+        // Create the session and run it
+        std::make_shared<ServerSession>(std::move(socket))->run();
+    }
+
+    // Accept another connection
+    do_accept();
 }

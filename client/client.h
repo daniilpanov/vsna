@@ -7,8 +7,6 @@
 #include "utils.h"
 #include "session.h"
 
-using tcp = boost::asio::ip::tcp;
-
 class Client {
     Config _config;
     boost::asio::io_context _io_context;
@@ -16,9 +14,9 @@ class Client {
     
 public:
     Client() : 
-        _config(Config()), 
-        _io_context(boost::asio::io_context()),
-        _resolver(tcp::resolver(_io_context))
+        _config(), 
+        _io_context(),
+        _resolver(_io_context)
     {}
 
     void setConfig(const Config& config) { _config = config; }

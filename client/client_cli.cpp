@@ -24,7 +24,7 @@ void ClientCLI::CLIParse(int argc, char** argv) {
     if (!configFile.empty()) {
         if (std::filesystem::exists(configFile)) {
             try {
-                this->_client.setConfig(Config::loadFromFile(configFile));
+                this->_client->setConfig(Config::loadFromFile(configFile));
             } catch (const std::exception& e) {
                 std::cerr << e.what() << std::endl;
                 exit(-1);
@@ -34,7 +34,7 @@ void ClientCLI::CLIParse(int argc, char** argv) {
             exit(-1);
         }
     } else {
-        this->_client.setConfig(Config(Addr(ip, port), path));
+        this->_client->setConfig(Config(Addr(ip, port), path));
     }
 }
 
@@ -55,7 +55,7 @@ void ClientCLI::buildCommands() {
 void ClientCLI::run(int argc, char** argv) {
     this->CLIParse(argc, argv);
     this->buildCommands();
-    _client.print();
+    _client->print();
     
     std::string input;
     while (true) {

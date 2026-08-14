@@ -1,5 +1,6 @@
 #include "server_cli.h"
 
+
 void ServerCLI::CLIParse(int argc, char** argv) {
     CLI::App app{ "VSNA Server" };
 
@@ -24,7 +25,7 @@ void ServerCLI::CLIParse(int argc, char** argv) {
     if (!configFile.empty()) {
         if (std::filesystem::exists(configFile)) {
             try {
-                this->_server.setConfig(Config::loadFromFile(configFile));
+                this->_server->setConfig(Config::loadFromFile(configFile));
             } catch (const std::exception& e) {
                 std::cerr << e.what() << std::endl;
                 exit(-1);
@@ -34,11 +35,11 @@ void ServerCLI::CLIParse(int argc, char** argv) {
             exit(-1);
         }
     } else {
-        this->_server.setConfig(Config(Addr(ip, port), path));
+        this->_server->setConfig(Config(Addr(ip, port), path));
     }
 }
 
 void ServerCLI::run(int argc, char** argv) {
     this->CLIParse(argc, argv);
-    this->_server.start();
+    this->_server->run();
 }
