@@ -4,10 +4,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-BUILD_DIR=${BUILD_DIR:-out}
+OUT_DIR=${OUT_DIR:-out}
 VCPKG_DIR="$SCRIPT_DIR/vcpkg"
 TRIPLET="x64-linux"
-TYPE=""
+USE_VCPKG="true"
 MODE=""   # server / client
 
 
@@ -21,12 +21,21 @@ usage() {
     exit 0
 }
 
-cmd_build_no_vcpkg() {
-    mkdir -p ${BUILD_DIR}
-    echo "-- Looking in local packages"
+cmd_build() {
+    BUILD_DIR="$OUT_DIR/$MODE"
+    mkdir -p $BUILD_DIR
+    if [ "$USE_VCPKG" = "true" ]; then
+      if [ ! -d "$VCPKG_DIR" ]; then
+        echo "-- Error: vcpkg not found. Run ./init_modules.sh"
+        exit 1
+      fi
+    else
+      echo "-- Looking in local packages"
+    fi
+    
     ( cmake -S . -B $BUILD_DIR \
         -DVCPKG_TARGET_TRIPLET=$TRIPLET \
-        -DAPP_NAME=$MODE \
+        -DAPP_NAME="vsna_$MODE" \
         -DSERVER=$([[ "$MODE" == "server" ]] && echo ON || echo OFF) \
         -DCLIENT=$([[ "$MODE" == "client" ]] && echo ON || echo OFF) \
         -DCMAKE_BUILD_TYPE=Debug \
@@ -35,31 +44,12 @@ cmd_build_no_vcpkg() {
     )
 
     echo "-- Build done!"
-    exit 0
-}
-
-cmd_build_via_vcpkg() {
-    mkdir -p ${BUILD_DIR}
-    if [ ! -d "$VCPKG_DIR" ]; then
-        echo "-- Error: vcpkg not found. Run ./init_modules.sh"
-        exit 1
-    fi
-    ( cmake -S . -B $BUILD_DIR \
-        -DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR/scripts/buildsystems/vcpkg.cmake \
-        -DVCPKG_TARGET_TRIPLET=$TRIPLET \
-        -DSERVER=$([[ "$MODE" == "server" ]] && echo ON || echo OFF) \
-        -DCLIENT=$([[ "$MODE" == "client" ]] && echo ON || echo OFF);
-      cmake --build $BUILD_DIR; 
-    )
-
-    echo "-- Build done!"
-    exit 0
 }
 
 cmd_clean() {
-    if [ -d "$BUILD_DIR" ]; then
-    rm -rf "$BUILD_DIR"
-    echo "-- Removed $BUILD_DIR"
+    if [ -d "$OUT_DIR" ]; then
+    rm -rf "$OUT_DIR"
+    echo "-- Removed $OUT_DIR"
   fi
   echo "-- Clean done!"
   exit 0
@@ -72,18 +62,19 @@ while [[ $# -gt 0 ]]; do
 
     --server) MODE="server" ;;
     --client) MODE="client" ;;
-    --no-vcpkg) TYPE="$1" ;;
+    --no-vcpkg) USE_VCPKG="false" ;;
     *) echo "Unknown arg: $1"; exit 1 ;;
   esac
   shift
 done
 
 if [[ -z "$MODE" ]]; then
-  echo "Usage: $0 [server|client] [Debug|Release|RelWithDebInfo|MinSizeRel]"
-  exit 1
+  MODE="server"
+  cmd_build
+  MODE="client"
+  cmd_build
+  exit 0
+else
+  cmd_build
+  exit 0
 fi
-
-case "${TYPE}" in
-    --no-vcpkg) cmd_build_no_vcpkg ;;
-    *) cmd_build_via_vcpkg ;;
-esac

@@ -1,145 +1,136 @@
 @echo off
 setlocal enabledelayedexpansion
 
-rem --- настройки по умолчанию ---
 set "SCRIPT_DIR=%~dp0"
 pushd "%SCRIPT_DIR%"
 
-set "BUILD_DIR=%BUILD_DIR%"
-if "%BUILD_DIR%"=="" set "BUILD_DIR=out"
+set "OUT_DIR=%OUT_DIR%"
+if "%OUT_DIR%"=="" set "OUT_DIR=out"
 
 set "VCPKG_DIR=%SCRIPT_DIR%\vcpkg"
 set "TRIPLET=x64-windows"
-set "TYPE="
+set "USE_VCPKG=true"
 set "MODE="
 
-goto :parse_loop
+goto parse_loop
 
 :usage
 echo Usage: %~nx0 ^<command^>
 echo Commands:
-
-echo --server Configure and build as a server
-echo --client Configure and build as a client
-echo --no-vcpkg Configure and build without vcpkg (via lib-devel)
-echo --clean Remove build directory
-popd
+echo   --server    Configure and build as a server
+echo   --client    Configure and build as a client
+echo   --no-vcpkg  Configure and build without vcpkg (via lib-devel)
+echo   --clean     Remove build directory
 exit /b 0
+
+
+:cmd_build
+set "BUILD_DIR=%OUT_DIR%\%MODE%"
+if not exist "%BUILD_DIR%" md "%BUILD_DIR%"
+
+if "%USE_VCPKG%"=="true" (
+    if not exist "%VCPKG_DIR%" (
+        echo -- Error: vcpkg not found. Run ./init_modules.sh
+        exit /b 1
+    )
+) else (
+    echo -- Looking in local packages
+)
+
+if /I "%MODE%"=="server" (
+    set "SERVER_FLAG=ON"
+    set "CLIENT_FLAG=OFF"
+) else (
+    set "SERVER_FLAG=OFF"
+    set "CLIENT_FLAG=ON"
+)
+
+if "%USE_VCPKG%"=="true" (
+    (
+        cmake -S . -B "%BUILD_DIR%" ^
+            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_DIR%\scripts\buildsystems\vcpkg.cmake" ^
+            -DVCPKG_TARGET_TRIPLET=%TRIPLET% ^
+            -DAPP_NAME="vsna_%MODE%" ^
+            -DSERVER=%SERVER_FLAG% ^
+            -DCLIENT=%CLIENT_FLAG% ^
+            -DCMAKE_BUILD_TYPE=Debug ^
+            -DCMAKE_CXX_FLAGS="-g -O0 -fno-omit-frame-pointer"
+        cmake --build "%BUILD_DIR%"
+    )
+) else (
+    (
+        cmake -S . -B "%BUILD_DIR%" ^
+            -DVCPKG_TARGET_TRIPLET=%TRIPLET% ^
+            -DAPP_NAME="vsna_%MODE%" ^
+            -DSERVER=%SERVER_FLAG% ^
+            -DCLIENT=%CLIENT_FLAG% ^
+            -DCMAKE_BUILD_TYPE=Debug ^
+            -DCMAKE_CXX_FLAGS="-g -O0 -fno-omit-frame-pointer"
+        cmake --build "%BUILD_DIR%"
+    )
+)
+
+echo -- Build done!
+exit /b 0
+
 
 :cmd_clean
-if exist "%BUILD_DIR%" (
-echo -- Removing %BUILD_DIR%
-rd /s /q "%BUILD_DIR%" 2>nul
-if errorlevel 1 echo Warning: failed to remove %BUILD_DIR%
-) else (
-echo -- %BUILD_DIR% not found
+if exist "%OUT_DIR%" (
+    rd /s /q "%OUT_DIR%"
+    echo -- Removed %OUT_DIR%
 )
 echo -- Clean done!
-popd
 exit /b 0
 
-:cmd_build_no_vcpkg
-if not exist "%BUILD_DIR%" md "%BUILD_DIR%"
-echo -- Looking in local packages
-cmake -S . -B "%BUILD_DIR%" ^
--DVCPKG_TARGET_TRIPLET=%TRIPLET% ^
--DSERVER=%SERVER_FLAG% ^
--DCLIENT=%CLIENT_FLAG%
-if errorlevel 1 (
-echo cmake configuration failed
-popd
-exit /b 1
-)
-cmake --build "%BUILD_DIR%"
-if errorlevel 1 (
-echo build failed
-popd
-exit /b 1
-)
-echo -- Build done!
-popd
-exit /b 0
 
-:cmd_build_via_vcpkg
-if not exist "%VCPKG_DIR%" (
-echo -- Error: vcpkg not found. Run init_modules.bat or place vcpkg in %VCPKG_DIR%
-popd
-exit /b 1
-)
-if not exist "%BUILD_DIR%" md "%BUILD_DIR%"
-echo -- Using vcpkg at %VCPKG_DIR%
-cmake -S . -B "%BUILD_DIR%" ^
--DCMAKE_TOOLCHAIN_FILE="%VCPKG_DIR%\scripts\buildsystems\vcpkg.cmake" ^
--DVCPKG_TARGET_TRIPLET=%TRIPLET% ^
--DSERVER=%SERVER_FLAG% ^
--DCLIENT=%CLIENT_FLAG%
-if errorlevel 1 (
-echo cmake configuration failed
-popd
-exit /b 1
-)
-cmake --build "%BUILD_DIR%"
-if errorlevel 1 (
-echo build failed
-popd
-exit /b 1
-)
-echo -- Build done!
-popd
-exit /b 0
-
-rem --- Разбор аргументов ---
 :parse_loop
 if "%~1"=="" goto parse_done
 
 if /I "%~1"=="--clean" (
-call :cmd_clean
-goto :eof
+    call :cmd_clean
+    popd
+    exit /b 0
 ) else if /I "%~1"=="-h" (
-call :usage
-goto :eof
+    call :usage
+    popd
+    exit /b 0
 ) else if /I "%~1"=="--help" (
-call :usage
-goto :eof
+    call :usage
+    popd
+    exit /b 0
 ) else if /I "%~1"=="--server" (
-set "MODE=server"
+    set "MODE=server"
 ) else if /I "%~1"=="--client" (
-set "MODE=client"
+    set "MODE=client"
 ) else if /I "%~1"=="--no-vcpkg" (
-set "TYPE=--no-vcpkg"
+    set "USE_VCPKG=false"
 ) else (
-echo Unknown arg: %~1
-popd
-exit /b 1
+    echo Unknown arg: %~1
+    popd
+    exit /b 1
 )
+
 shift
 goto parse_loop
 
+
 :parse_done
-
 if "%MODE%"=="" (
-echo Usage: %~nx0 [--server|--client] [--no-vcpkg]
-popd
-exit /b 1
-)
+    set "MODE=server"
+    call :cmd_build
 
-rem подготовка флагов для cmake (ON/OFF)
-if /I "%MODE%"=="server" (
-set "SERVER_FLAG=ON"
-set "CLIENT_FLAG=OFF"
+    set "MODE=client"
+    call :cmd_build
+
+    popd
+    exit /b 0
 ) else (
-set "SERVER_FLAG=OFF"
-set "CLIENT_FLAG=ON"
+    call :cmd_build
+    popd
+    exit /b 0
 )
 
-rem выбор сборки
-if /I "%TYPE%"=="--no-vcpkg" (
-call :cmd_build_no_vcpkg
-) else (
-call :cmd_build_via_vcpkg
-)
 
-rem safety
+:cmd_end
 popd
 exit /b 0
-// end build.bat
