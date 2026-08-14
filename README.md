@@ -29,6 +29,8 @@ Then you can build the project (for client or server):
 .\build.bat [--client|--server]
 ```
 
+Otherwise, if you do not specify the flag, both configurations will be built.
+
 If you use Unix system, you can do the same actions via Shell scripts:
 
 ```bash
