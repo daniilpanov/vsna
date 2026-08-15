@@ -1,7 +1,7 @@
 #include "server.h"
 
 Server::Server(): 
-        _config(),
+        _config(Config::loadFromFile("config.json")),
         _io_context(max_threads),
         _acceptor(_io_context)
     {
@@ -17,6 +17,7 @@ Server::Server():
             fail(ec, "open");
             return;
         }
+        std::cout << "opened\n";
 
         // Allow address reuse
         _acceptor.set_option(
@@ -26,6 +27,7 @@ Server::Server():
             fail(ec, "set_oprion");
             return;
         }
+        std::cout << "set_option\n";
 
         // Bind to the server address
         _acceptor.bind(endpoint, ec);
@@ -33,6 +35,7 @@ Server::Server():
             fail(ec, "bind");
             return;
         }
+        std::cout << "binded\n";
 
         // Start listening for connections
         _acceptor.listen(
@@ -42,6 +45,7 @@ Server::Server():
             fail(ec, "listen");
             return;
         }
+        std::cout << "listening\n";
     }
 
 
@@ -60,6 +64,7 @@ void Server::run() {
         std::cout << "Thread " << i + 1 << " started." << std::endl;
     }
 
+    std::cout << "PID: " << getpid() << '\n';
     std::cout << "Main thread started." << std::endl;
     _io_context.run();
 }
@@ -71,6 +76,8 @@ void Server::start_accept() {
 
 
 void Server::do_accept() {
+    std::cout << "Waiting for a TCP connection...\n";
+
     // The new connection gets its own strand
     _acceptor.async_accept(
         asio::make_strand(_io_context),
@@ -86,6 +93,12 @@ void Server::on_accept(beast::error_code ec, tcp::socket socket) {
         fail(ec, "accept");
     }
     else {
+        std::cout << "Accepted "
+                  << socket.remote_endpoint().address().to_string()
+                  << ':'
+                  << socket.remote_endpoint().port()
+                  << '\n';
+                  
         // Create the session and run it
         std::make_shared<ServerSession>(std::move(socket))->run();
     }
