@@ -1,44 +1,60 @@
 #include "addr.h"
 
-Addr::Addr(STRING_ARG ip, STRING_ARG port){
-    setIp(ip);
-    setPort(port);
+Addr::Addr(STRING_ARG ip, STRING_ARG port)
+{
+	setIp(ip);
+	setPort(port);
 }
 
-bool isValidIPv4(STRING_ARG ipString) {
-    try {
-        boost::asio::ip::address addr = boost::asio::ip::make_address(ipString);
-        return addr.is_v4();
-    } catch (const boost::system::system_error&) {
-        return false;
-    }
+bool isValidIPv4(STRING_ARG ipString)
+{
+	try
+	{
+		boost::asio::ip::address addr = boost::asio::ip::make_address(ipString);
+		return addr.is_v4();
+	}
+	catch (const boost::system::system_error&)
+	{
+		return false;
+	}
 }
 
-void Addr::setIp(STRING_ARG ip) {
-    if (ip.empty()) {
-        throw std::invalid_argument("[!] IP cannot be empty");
-    }
+void Addr::setIp(STRING_ARG ip)
+{
+	if (ip.empty())
+	{
+		throw std::invalid_argument("[!] IP cannot be empty");
+	}
 
-    if (!isValidIPv4(ip)) {
-        throw std::invalid_argument("[!] Invalid IPv4 format: " + ip);
-    }
-    
-    this->_ip = ip;
+	if (!isValidIPv4(ip))
+	{
+		throw std::invalid_argument("[!] Invalid IPv4 format: " + ip);
+	}
+
+	this->_ip = ip;
 }
 
-void Addr::setPort(STRING_ARG port) {
-    if (port.empty()) {
-        throw std::invalid_argument("[!] Port cannot be empty");
-    }
-    try {
-        int32_t port_num = std::stoi(port);
-        if (port_num < 0 || port_num > 65535) {
-            throw std::out_of_range("[!] Port out of range (0-65535): " + port);
-        }
-        this->_port = std::to_string(port_num);
-    } catch (const std::invalid_argument&) {
-        throw std::invalid_argument("[!] Invalid port: " + port);
-    } catch (const std::out_of_range&) {
-        throw std::out_of_range("[!] Port out of range (0-65535): " + port);
-    }
+void Addr::setPort(STRING_ARG port)
+{
+	if (port.empty())
+	{
+		throw std::invalid_argument("[!] Port cannot be empty");
+	}
+	try
+	{
+		int32_t port_num = std::stoi(port);
+		if (port_num < 0 || port_num > 65535)
+		{
+			throw std::out_of_range("[!] Port out of range (0-65535): " + port);
+		}
+		this->_port = std::to_string(port_num);
+	}
+	catch (const std::invalid_argument&)
+	{
+		throw std::invalid_argument("[!] Invalid port: " + port);
+	}
+	catch (const std::out_of_range&)
+	{
+		throw std::out_of_range("[!] Port out of range (0-65535): " + port);
+	}
 }
