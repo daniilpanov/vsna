@@ -38,23 +38,10 @@ void ClientCLI::CLIParse(int argc, char** argv) {
     }
 }
 
-void ClientCLI::buildCommands() {
-    auto add = [&](auto cmd) {
-        _commands[std::string(cmd->getName())] = std::move(cmd);
-    };
-    add(std::make_unique<HelpCommand>(_client, _commands));
-    add(std::make_unique<ExitCommand>(_client, _isExit));
-    add(std::make_unique<PrintCommand>(_client));
-    add(std::make_unique<MyPathCommand>(_client));
-    add(std::make_unique<ConnectCommand>(_client));
-    add(std::make_unique<ShowPathCommand>(_client));
-    add(std::make_unique<DownloadCommand>(_client));
-    add(std::make_unique<SendFilesCommand>(_client));
-}
-
 void ClientCLI::run(int argc, char** argv) {
     this->CLIParse(argc, argv);
-    this->buildCommands();
+    CommandManager cm(_client);
+    cm.init_commands(_commands);
     _client->print();
     
     std::string input;
@@ -71,6 +58,6 @@ void ClientCLI::run(int argc, char** argv) {
         } else {
             it->second->handle(ARG_VECTOR(args.begin() + 1, args.end()));
         }
-        if (_isExit) break;
+        if (_client->should_be_closed()) break;
     }
 }

@@ -82,9 +82,8 @@ public:
 
 
 class ExitCommand : public MenuItem {
-    bool& _isExit;
 public:
-    explicit ExitCommand(std::shared_ptr<Client> client, bool& exitFlag) : MenuItem(client), _isExit(exitFlag) {}
+    explicit ExitCommand(std::shared_ptr<Client> client) : MenuItem(client) {}
     void handle(CONST_ARG_VECTOR args) override;
     std::string_view getName() const override { return "exit"; }
     std::string_view getDescription() const override { return "Exit the program"; }

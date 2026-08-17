@@ -36,13 +36,11 @@ set(SERVER_SOURCES
     ${SERVER_DIR}/session.cpp
 )
 set(CLIENT_SOURCES
-    ${CLIENT_DIR}/client_cli.cpp
-    ${CLIENT_DIR}/client_cli.h
     ${CLIENT_DIR}/client.cpp
-    ${CLIENT_DIR}/client.h
-    ${CLIENT_DIR}/menu.cpp
-    ${CLIENT_DIR}/menu.h
     ${CLIENT_DIR}/session.cpp
+    ${CLIENT_DIR}/cli/client_cli.cpp
+    ${CLIENT_DIR}/cli/menu.cpp
+    ${CLIENT_DIR}/cli/command_manager.cpp
 )
 
 # Core
@@ -86,7 +84,11 @@ target_include_directories(server PUBLIC ${SERVER_DIR} ${COMMON_DIR})
 # Client
 add_library(client STATIC ${CLIENT_SOURCES})
 target_link_libraries(client PRIVATE common)
-target_include_directories(client PUBLIC ${CLIENT_DIR} ${COMMON_DIR})
+target_include_directories(client PUBLIC
+    ${CLIENT_DIR} 
+    ${CLIENT_DIR}/cli 
+    ${COMMON_DIR}
+)
 
 # Copy config.json
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

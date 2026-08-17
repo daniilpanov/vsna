@@ -11,6 +11,8 @@ class Client {
     Config _config;
     boost::asio::io_context _io_context;
     tcp::resolver _resolver;
+
+    bool _is_exit { false }; // TODO: Can be replaced?
     
 public:
     Client() : 
@@ -28,4 +30,6 @@ public:
     void myPath(CONST_ARG_VECTOR) const;
     void sendFiles(CONST_ARG_VECTOR);
     void download(CONST_ARG_VECTOR);
+    void exit() { _is_exit = true; };
+    bool should_be_closed() { return _is_exit; }
 };

@@ -1,7 +1,7 @@
 #include "server.h"
 
 Server::Server(): 
-        _config(Config::loadFromFile("config.json")),
+        _config(Config::loadFromFile("config.json")), // TODO: Fix hardcode
         _io_context(max_threads),
         _acceptor(_io_context)
     {

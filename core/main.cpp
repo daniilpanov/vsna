@@ -14,18 +14,13 @@
 int main(int argc, char* argv[]) {   
     #if BUILD_SERVER
     std::cout << "Built as a server." << std::endl;
-
-    ServerCLI server;
-    server.run(argc, argv);
+    std::make_shared<Server>()->run();
     #endif
 
     #if BUILD_CLIENT
     std::cout << "Built as a client." << std::endl; 
-    
-    // ClientCLI client;
-    // client.run(argc, argv);
-
-    std::make_shared<Server>()->run();
+    ClientCLI client;
+    client.run(argc, argv);
     #endif
 
     return EXIT_SUCCESS;

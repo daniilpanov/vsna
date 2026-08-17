@@ -2,7 +2,7 @@
 
 
 void ExitCommand::handle(CONST_ARG_VECTOR args) {
-    _isExit = true;
+    _client->exit();
     std::cout << "[~] Program was exit." << std::endl;
 }
 
