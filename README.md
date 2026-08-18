@@ -12,13 +12,7 @@ First you need to initialize boost via `vcpkg`.
 If you don't have it, you can install it by running:
 
 ```bash
-.\init_modules.bat --init
-```
-
-You can see more commands by:
-
-```bash
-.\init_modules.bat --help
+.\init_modules.bat --init # See more flags with --help
 ```
 
 **Default build**
@@ -44,13 +38,13 @@ If you use Unix system, you can do the same actions via Shell scripts:
 - With CLI flags:
 
 ```bash
-.\out\Debug\vsna.exe -i 127.0.0.1 -p 5555 -d \
+.\out\client\Debug\vsna_client.exe -i 127.0.0.1 -p 5555 -d \
 ```
 
 - With config file:
 
 ```bash
-.\out\Debug\vsna.exe -c config.example.json
+.\out\client\Debug\vsna_client.exe -c config.example.json
 ```
 
 **Server**
@@ -58,13 +52,13 @@ If you use Unix system, you can do the same actions via Shell scripts:
 - With CLI flags:
 
 ```bash
-.\out\Debug\vsna.exe -i 0.0.0.0 -p 5555 -d \
+.\out\server\Debug\vsna_server.exe -i 0.0.0.0 -p 5555 -d \
 ```
 
 - With config file:
 
 ```bash
-.\out\Debug\vsna.exe -c config.example.json
+.\out\server\Debug\vsna_server.exe -c config.example.json
 ```
 
 **CLI Scheme**
@@ -73,6 +67,6 @@ If you use Unix system, you can do the same actions via Shell scripts:
 |---|---|---|
 | `-h`, `--help` | show help message |-|
 | `-p`, `--port <port>` | set port | 8080 |
-| `-i`, `--ip <ip>` | set server address | 0.0.0.0 |
+| `-i`, `--ip <ip>` | set client/server address | 0.0.0.0 |
 | `-d`, `--dir <path>` | set client/server path | <current directory> |
 | `-c`, `--config <path>` | set config file path | none |
