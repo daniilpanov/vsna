@@ -15,10 +15,9 @@ class MenuItem {
 
   public:
 	virtual ~MenuItem() = default;
-	// TODO: Is neccessary to init _client by std::make_shared<Client>?
 	explicit MenuItem(std::shared_ptr<Client> client) : _client(client)
 	{}
-	virtual void handle(CONST_ARG_VECTOR) = 0;
+	virtual bool handle(CONST_ARG_VECTOR) = false;
 	virtual std::string_view getName() const = 0;
 	virtual std::string_view getDescription() const = 0;
 	virtual std::string_view getUsage() const
@@ -31,9 +30,10 @@ class ConnectCommand : public MenuItem {
   public:
 	explicit ConnectCommand(std::shared_ptr<Client> client) : MenuItem(client)
 	{}
-	void handle(CONST_ARG_VECTOR args) override
+	bool handle(CONST_ARG_VECTOR args) override
 	{
 		_client->connect(args);
+		return false;
 	};
 	std::string_view getName() const override
 	{
@@ -53,9 +53,10 @@ class ShowPathCommand : public MenuItem {
   public:
 	explicit ShowPathCommand(std::shared_ptr<Client> client) : MenuItem(client)
 	{}
-	void handle(CONST_ARG_VECTOR args) override
+	bool handle(CONST_ARG_VECTOR args) override
 	{
 		_client->showPath(args);
+		return false;
 	};
 	std::string_view getName() const override
 	{
@@ -75,9 +76,10 @@ class MyPathCommand : public MenuItem {
   public:
 	explicit MyPathCommand(std::shared_ptr<Client> client) : MenuItem(client)
 	{}
-	void handle(CONST_ARG_VECTOR args) override
+	bool handle(CONST_ARG_VECTOR args) override
 	{
 		_client->myPath(args);
+		return false;
 	};
 	std::string_view getName() const override
 	{
@@ -97,9 +99,10 @@ class SendFilesCommand : public MenuItem {
   public:
 	explicit SendFilesCommand(std::shared_ptr<Client> client) : MenuItem(client)
 	{}
-	void handle(CONST_ARG_VECTOR args) override
+	bool handle(CONST_ARG_VECTOR args) override
 	{
 		_client->sendFiles(args);
+		return false;
 	};
 	std::string_view getName() const override
 	{
@@ -119,9 +122,10 @@ class DownloadCommand : public MenuItem {
   public:
 	explicit DownloadCommand(std::shared_ptr<Client> client) : MenuItem(client)
 	{}
-	void handle(CONST_ARG_VECTOR args) override
+	bool handle(CONST_ARG_VECTOR args) override
 	{
 		_client->download(args);
+		return false;
 	};
 	std::string_view getName() const override
 	{
@@ -141,9 +145,10 @@ class PrintCommand : public MenuItem {
   public:
 	explicit PrintCommand(std::shared_ptr<Client> client) : MenuItem(client)
 	{}
-	void handle(CONST_ARG_VECTOR args) override
+	bool handle(CONST_ARG_VECTOR args) override
 	{
 		_client->print();
+		return false;
 	};
 	std::string_view getName() const override
 	{
@@ -159,7 +164,11 @@ class ExitCommand : public MenuItem {
   public:
 	explicit ExitCommand(std::shared_ptr<Client> client) : MenuItem(client)
 	{}
-	void handle(CONST_ARG_VECTOR args) override;
+	bool handle(CONST_ARG_VECTOR args) override
+	{
+		std::cout << "[~] Program was exit." << std::endl;
+		return true;
+	}
 	std::string_view getName() const override
 	{
 		return "exit";
@@ -178,7 +187,7 @@ class HelpCommand : public MenuItem {
 	            std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands)
 	    : MenuItem(client), _commands(commands)
 	{}
-	void handle(CONST_ARG_VECTOR args) override;
+	bool handle(CONST_ARG_VECTOR args) override;
 	std::string_view getName() const override
 	{
 		return "help";

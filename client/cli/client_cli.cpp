@@ -55,7 +55,7 @@ void ClientCLI::run(int argc, char **argv)
 {
 	this->CLIParse(argc, argv);
 	CommandManager cm(_client);
-	cm.init_commands(_commands);
+	cm.initCommands(_commands);
 	_client->print();
 
 	std::string input;
@@ -75,9 +75,8 @@ void ClientCLI::run(int argc, char **argv)
 		}
 		else
 		{
-			it->second->handle(ARG_VECTOR(args.begin() + 1, args.end()));
+			if (it->second->handle(ARG_VECTOR(args.begin() + 1, args.end())))
+				break;
 		}
-		if (_client->should_be_closed())
-			break;
 	}
 }

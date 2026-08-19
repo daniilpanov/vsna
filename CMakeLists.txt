@@ -59,7 +59,7 @@ find_package(Boost REQUIRED COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
 find_package(Threads REQUIRED)
 
 if (Boost_FOUND)
-    add_definitions(-DHAS_BOOST)
+    add_definitions(-DHAS_BOOST -D_WIN32_WINNT=0x0A00)
     target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} PRIVATE 
         Boost::headers

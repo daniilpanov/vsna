@@ -1,6 +1,6 @@
 #include "command_manager.h"
 
-void CommandManager::init_commands(
+void CommandManager::initCommands(
     std::unordered_map<std::string, std::unique_ptr<MenuItem>>& _commands)
 {
 	auto add = [&](auto cmd) { _commands[std::string(cmd->getName())] = std::move(cmd); };
