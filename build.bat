@@ -52,10 +52,8 @@ if "%USE_VCPKG%"=="true" (
             -DVCPKG_TARGET_TRIPLET=%TRIPLET% ^
             -DAPP_NAME="vsna_%MODE%" ^
             -DSERVER=%SERVER_FLAG% ^
-            -DCLIENT=%CLIENT_FLAG% ^
-            -DCMAKE_BUILD_TYPE=Debug ^
-            -DCMAKE_CXX_FLAGS="-g -O0 -fno-omit-frame-pointer"
-        cmake --build "%BUILD_DIR%"
+            -DCLIENT=%CLIENT_FLAG%
+        cmake --build "%BUILD_DIR%" --config Debug
     )
 ) else (
     (
@@ -63,10 +61,8 @@ if "%USE_VCPKG%"=="true" (
             -DVCPKG_TARGET_TRIPLET=%TRIPLET% ^
             -DAPP_NAME="vsna_%MODE%" ^
             -DSERVER=%SERVER_FLAG% ^
-            -DCLIENT=%CLIENT_FLAG% ^
-            -DCMAKE_BUILD_TYPE=Debug ^
-            -DCMAKE_CXX_FLAGS="-g -O0 -fno-omit-frame-pointer"
-        cmake --build "%BUILD_DIR%"
+            -DCLIENT=%CLIENT_FLAG%
+        cmake --build "%BUILD_DIR%" --config Debug
     )
 )
 

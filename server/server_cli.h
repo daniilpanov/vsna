@@ -15,6 +15,6 @@ class ServerCLI {
   public:
 	ServerCLI() : _server(std::make_shared<Server>())
 	{}
-	void CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);
+	void CLIParse(int argc, char **argv);
 };

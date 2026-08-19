@@ -1,8 +1,7 @@
 #include "server.h"
 
 Server::Server()
-    : _config(Config::loadFromFile("config.json")), // TODO: Fix hardcode
-      _io_context(max_threads), _acceptor(_io_context)
+    : _io_context(max_threads), _acceptor(_io_context)
 {
 	beast::error_code ec;
 	tcp::endpoint endpoint(asio::ip::make_address(_config.getAddr().ip()),

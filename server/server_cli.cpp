@@ -1,5 +1,11 @@
 #include "server_cli.h"
 
+void ServerCLI::run(int argc, char **argv)
+{
+	this->CLIParse(argc, argv);
+	this->_server->run();
+}
+
 void ServerCLI::CLIParse(int argc, char **argv)
 {
 	CLI::App app{ "VSNA Server" };
@@ -49,10 +55,4 @@ void ServerCLI::CLIParse(int argc, char **argv)
 	{
 		this->_server->setConfig(Config(Addr(ip, port), path));
 	}
-}
-
-void ServerCLI::run(int argc, char **argv)
-{
-	this->CLIParse(argc, argv);
-	this->_server->run();
 }

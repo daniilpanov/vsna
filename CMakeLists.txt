@@ -53,6 +53,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${APP_NAME}")
 set(BOOST_REQUIRED_COMPONENTS
     filesystem
     system
+    exception
 )
 find_package(Boost REQUIRED COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
 find_package(Threads REQUIRED)
@@ -73,7 +74,7 @@ endif()
 # Common
 add_library(common STATIC ${COMMON_SOURCES})
 target_include_directories(common PUBLIC ${COMMON_DIR})
-target_link_libraries(common PUBLIC Boost::headers)
+target_link_libraries(common PUBLIC Boost::headers ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} PRIVATE common)
 
 # Server
