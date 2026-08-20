@@ -31,7 +31,7 @@ void ClientCLI::CLIParse(int argc, char **argv)
 		{
 			try
 			{
-				this->_client->setConfig(Config::loadFromFile(configFile));
+				this->_client.setConfig(Config::loadFromFile(configFile));
 			}
 			catch (const std::exception& e)
 			{
@@ -47,7 +47,7 @@ void ClientCLI::CLIParse(int argc, char **argv)
 	}
 	else
 	{
-		this->_client->setConfig(Config(Addr(ip, port), path));
+		this->_client.setConfig(Config(Addr(ip, port), path));
 	}
 }
 
@@ -56,7 +56,7 @@ void ClientCLI::run(int argc, char **argv)
 	this->CLIParse(argc, argv);
 	CommandManager cm(_client);
 	cm.initCommands(_commands);
-	_client->print();
+	_client.print();
 
 	std::string input;
 	while (true)

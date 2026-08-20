@@ -21,8 +21,9 @@ int main(int argc, char *argv[])
 
 #if BUILD_CLIENT
 	std::cout << "Built as a client." << std::endl;
-	ClientCLI client;
-	client.run(argc, argv);
+	Client client;
+	ClientCLI clientCLI(client);
+	clientCLI.run(argc, argv);
 #endif
 
 	return EXIT_SUCCESS;

@@ -11,171 +11,101 @@
 
 class MenuItem {
   protected:
-	std::shared_ptr<Client> _client;
+	Client& _client;
 
   public:
+	std::string_view name;
+	std::string_view desc;
+	std::string_view usage{ "" };
+
 	virtual ~MenuItem() = default;
-	explicit MenuItem(std::shared_ptr<Client> client) : _client(client)
+	MenuItem(Client& client, std::string_view name, std::string_view desc, std::string_view usage) 
+	    : _client(client), name(name), desc(desc), usage(usage)
 	{}
 	virtual bool handle(CONST_ARG_VECTOR) = false;
-	virtual std::string_view getName() const = 0;
-	virtual std::string_view getDescription() const = 0;
-	virtual std::string_view getUsage() const
-	{
-		return {};
-	}
 };
 
 class ConnectCommand : public MenuItem {
   public:
-	explicit ConnectCommand(std::shared_ptr<Client> client) : MenuItem(client)
+	ConnectCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage) 
+	    : MenuItem(client, name, desc, usage)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
-		_client->connect(args);
+		_client.connect(args);
 		return false;
 	};
-	std::string_view getName() const override
-	{
-		return "connect";
-	}
-	std::string_view getDescription() const override
-	{
-		return "Connect to the server";
-	}
-	std::string_view getUsage() const override
-	{
-		return "[ip:port]";
-	}
 };
 
 class ShowPathCommand : public MenuItem {
   public:
-	explicit ShowPathCommand(std::shared_ptr<Client> client) : MenuItem(client)
+	ShowPathCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
+	    : MenuItem(client, name, desc, usage)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
-		_client->showPath(args);
+		_client.showPath(args);
 		return false;
 	};
-	std::string_view getName() const override
-	{
-		return "path";
-	}
-	std::string_view getDescription() const override
-	{
-		return "Show the server path";
-	}
-	std::string_view getUsage() const override
-	{
-		return "[name]";
-	}
 };
 
 class MyPathCommand : public MenuItem {
   public:
-	explicit MyPathCommand(std::shared_ptr<Client> client) : MenuItem(client)
+	MyPathCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
+	    : MenuItem(client, name, desc, usage)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
-		_client->myPath(args);
+		_client.myPath(args);
 		return false;
 	};
-	std::string_view getName() const override
-	{
-		return "mypath";
-	}
-	std::string_view getDescription() const override
-	{
-		return "Show the client path";
-	}
-	std::string_view getUsage() const override
-	{
-		return "[name]";
-	}
 };
 
 class SendFilesCommand : public MenuItem {
   public:
-	explicit SendFilesCommand(std::shared_ptr<Client> client) : MenuItem(client)
+	SendFilesCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
+	    : MenuItem(client, name, desc, usage)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
-		_client->sendFiles(args);
+		_client.sendFiles(args);
 		return false;
 	};
-	std::string_view getName() const override
-	{
-		return "send";
-	}
-	std::string_view getDescription() const override
-	{
-		return "Send files to the server";
-	}
-	std::string_view getUsage() const override
-	{
-		return "<file1 | path1> [file2] ...";
-	}
 };
 
 class DownloadCommand : public MenuItem {
   public:
-	explicit DownloadCommand(std::shared_ptr<Client> client) : MenuItem(client)
+	DownloadCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
+	    : MenuItem(client, name, desc, usage)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
-		_client->download(args);
+		_client.download(args);
 		return false;
 	};
-	std::string_view getName() const override
-	{
-		return "download";
-	}
-	std::string_view getDescription() const override
-	{
-		return "Download files from the server";
-	}
-	std::string_view getUsage() const override
-	{
-		return "<file1 | path1> [file2] ...";
-	}
 };
 
 class PrintCommand : public MenuItem {
   public:
-	explicit PrintCommand(std::shared_ptr<Client> client) : MenuItem(client)
+	PrintCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
+	    : MenuItem(client, name, desc, usage)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
-		_client->print();
+		_client.print();
 		return false;
 	};
-	std::string_view getName() const override
-	{
-		return "print";
-	}
-	std::string_view getDescription() const override
-	{
-		return "Print the current path";
-	}
 };
 
 class ExitCommand : public MenuItem {
   public:
-	explicit ExitCommand(std::shared_ptr<Client> client) : MenuItem(client)
+	ExitCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
+	    : MenuItem(client, name, desc, usage)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
 		std::cout << "[~] Program was exit." << std::endl;
 		return true;
-	}
-	std::string_view getName() const override
-	{
-		return "exit";
-	}
-	std::string_view getDescription() const override
-	{
-		return "Exit the program";
 	}
 };
 
@@ -183,17 +113,10 @@ class HelpCommand : public MenuItem {
 	std::unordered_map<std::string, std::unique_ptr<MenuItem>>& _commands;
 
   public:
-	HelpCommand(std::shared_ptr<Client> client,
-	            std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands)
-	    : MenuItem(client), _commands(commands)
+	HelpCommand(Client& client,
+	            std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands,
+	            std::string_view name, std::string_view desc, std::string_view usage)
+	    : MenuItem(client, name, desc, usage), _commands(commands)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override;
-	std::string_view getName() const override
-	{
-		return "help";
-	}
-	std::string_view getDescription() const override
-	{
-		return "Show this help message";
-	}
 };

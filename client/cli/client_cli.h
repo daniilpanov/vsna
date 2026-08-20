@@ -13,11 +13,11 @@
 #include "utils.h"
 
 class ClientCLI {
-	std::shared_ptr<Client> _client;
+	Client& _client;
 	std::unordered_map<std::string, std::unique_ptr<MenuItem>> _commands;
 
   public:
-	ClientCLI() : _client(std::make_shared<Client>())
+	ClientCLI(Client& client) : _client(client)
 	{}
 	void CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);
