@@ -1,0 +1,77 @@
+---
+# Язык: C (для C++ можно добавить отдельный файл или Language: Cpp)
+Language: Cpp
+
+# Базовый стиль — GNU (ближе всего к традиционному C-стилю)
+BasedOnStyle: GNU
+
+# Отступы
+IndentWidth: 4              # Табуляция = 8 пробелов (классика для C)
+TabWidth: 4
+UseTab: ForIndentation      # Использовать табы только для отступов
+ContinuationIndentWidth: 4  # Отступ для продолжения строк
+
+# Выравнивание
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlines: Right
+AlignOperands: Align
+AlignTrailingComments: true
+
+# Скобки
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true      # Фигурная скобка функции на новой строке
+  AfterControlStatement: true  # if/for/while — скобка на новой строке
+  AfterEnum: false
+  AfterStruct: true
+  AfterUnion: false
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false      # КЛЮЧЕВАЯ ОПЦИЯ: не добавлять отступ к скобке
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: false
+
+# Переносы строк
+ColumnLimit: 100            # Максимальная длина строки (можно 80 для строгого стиля)
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+AllowAllParametersOfDeclarationOnNextLine: true
+BinPackArguments: true
+BinPackParameters: true
+
+# Пробелы
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# Указатели и ссылки
+PointerAlignment: Right      # int* ptr (стиль C)
+ReferenceAlignment: Left
+
+# Прочее
+SortIncludes: false         # Не сортировать #include (в C это редко нужно)
+IncludeCategories: []
+CompactNamespaces: false
+NamespaceIndentation: None
+PPIndentWidth: -1           # Препроцессор следует за отступами кода
