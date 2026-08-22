@@ -3,6 +3,7 @@ project(vsna VERSION 1.0.0 LANGUAGES CXX)
 
 # Settings
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 if(POLICY CMP0167)
@@ -27,6 +28,8 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/addr.h
     ${COMMON_DIR}/config.cpp 
     ${COMMON_DIR}/config.h
+    ${COMMON_DIR}/logger.cpp
+    ${COMMON_DIR}/logger.h
 )
 set(SERVER_SOURCES
     ${SERVER_DIR}/server.cpp
