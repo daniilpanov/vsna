@@ -146,7 +146,7 @@ void HistoryInput::browse(int dir) {
 // ChatApp
 
 void ChatApp::run() {
-  build_command_table();
+  register_commands();
   build_ui();
   append_system("Welcome! Type a message below and press Enter to send it.");
   append_system("Automatic status messages arrive every 3 seconds (toggle in Settings).");
@@ -249,27 +249,21 @@ void ChatApp::submit() {
   add_line(LineKind::kUser, "[" + timestamp() + "] You: " + text);
 }
 
-void ChatApp::register_command(
-    std::string name, const char *usage, const char *description,
-    std::function<void(const std::vector<std::string> &args)> handler) {
-  commands_[std::move(name)] = {usage, description, std::move(handler)};
-}
-
-void ChatApp::build_command_table() {
-  register_command(
+void ChatApp::register_commands() {
+  invoker_.register_command(
       "exit", "exit", "Close the application.",
       [this](const std::vector<std::string> &) {
         append_system("Goodbye!");
         App::quit();
       });
 
-  register_command(
+  invoker_.register_command(
       "hello", "hello", "Print an ASCII banner.",
       [this](const std::vector<std::string> &) {
         add_line(LineKind::kResult, kHelloBanner);
       });
 
-  register_command(
+  invoker_.register_command(
       "calculate", "calculate <number> <number>",
       "Print the sum of two numbers.",
       [this](const std::vector<std::string> &args) {
@@ -287,7 +281,7 @@ void ChatApp::build_command_table() {
         }
       });
 
-  register_command(
+  invoker_.register_command(
       "list", "list [directory]", "Open a directory browser dialog.",
       [this](const std::vector<std::string> &args) {
         if (args.size() > 1) {
@@ -297,11 +291,12 @@ void ChatApp::build_command_table() {
         open_list_dialog(args.empty() ? "." : args[0]);
       });
 
-  register_command(
+  invoker_.register_command(
       "help", "help", "List available commands.",
       [this](const std::vector<std::string> &) {
+        auto &cmds = invoker_.commands();
         std::vector<const std::pair<const std::string, Command> *> sorted;
-        for (const auto &entry : commands_) sorted.push_back(&entry);
+        for (const auto &entry : cmds) sorted.push_back(&entry);
         std::sort(sorted.begin(), sorted.end(),
                   [](const auto *a, const auto *b) {
                     return a->first < b->first;
@@ -318,11 +313,7 @@ bool ChatApp::execute_command(const std::string &text) {
   std::vector<std::string> tokens = split_whitespace(text);
   if (tokens.empty()) return true;
 
-  auto it = commands_.find(tokens[0]);
-  if (it == commands_.end()) return false;
-
-  it->second.handler({tokens.begin() + 1, tokens.end()});
-  return true;
+  return invoker_.execute(tokens[0], {tokens.begin() + 1, tokens.end()});
 }
 
 void ChatApp::scan_dir_into(TreeNode &node, const fs::path &dir) {

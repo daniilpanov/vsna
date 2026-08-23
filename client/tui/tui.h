@@ -7,12 +7,12 @@
 #include <cstdio>
 #include <ctime>
 #include <filesystem>
-#include <functional>
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include <unordered_map>
 #include <vector>
+
+#include "invoker.h"
 
 namespace fs = std::filesystem;
 using namespace cpptui;
@@ -60,16 +60,7 @@ class ChatApp {
   void apply_theme(int idx);
   void submit();
 
-  struct Command {
-    std::string usage;
-    std::string description;
-    std::function<void(const std::vector<std::string> &args)> handler;
-  };
-
-  void register_command(
-      std::string name, const char *usage, const char *description,
-      std::function<void(const std::vector<std::string> &args)> handler);
-  void build_command_table();
+  void register_commands();
   bool execute_command(const std::string &text);
 
   static void scan_dir_into(TreeNode &node, const fs::path &dir);
@@ -95,7 +86,7 @@ class ChatApp {
   std::shared_ptr<Checkbox> settings_checkbox_;
   TimerId focus_fix_timer_{-1};
   std::vector<OutputLine> lines_;
-  std::unordered_map<std::string, Command> commands_;
+  Invoker invoker_;
   int auto_message_index_ = 0;
   int auto_message_number_ = 0;
 };
