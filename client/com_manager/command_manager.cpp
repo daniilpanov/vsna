@@ -1,24 +1,24 @@
 #include "command_manager.h"
 
 
-template <typename T>
-void CommandManager::addCommand(STRING_ARG name, STRING_ARG desc, STRING_ARG usage)
+template <typename T, typename... Args>
+void CommandManager::addCommand(STRING_ARG name, STRING_ARG desc, STRING_ARG usage, Args&&... args)
 {
-	_commands[name] = std::make_unique<T>(_client, CommandInfo{ name, desc, usage });
+    _commands[name] = std::make_unique<T>(
+        _client, CommandInfo{ name, desc, usage }, std::forward<Args>(args)...);
 }
 
 // Write commands in lower case!
 void CommandManager::initCommands()
 {
+	addCommand<HelpCommand>("help", "Show help", "", *this);
 	addCommand<ExitCommand>("exit", "Exit the program", "");
 	addCommand<PrintCommand>("print", "Print the server path", "");
 	addCommand<MyPathCommand>("mypath", "Show the client path", "");
-	addCommand<SendFilesCommand>("send_files", "Send files", "[file | path]");
-	addCommand<DownloadCommand>("download", "Download a file", "[file | path]");
+	addCommand<ShowPathCommand>("show_path", "Show server path", "[path]");
 	addCommand<ConnectCommand>("connect", "Connect to the server", "[ip:port]");
-	addCommand<ShowPathCommand>("show_path", "Show the server path", "[file | path]");
-	_commands["help"] = std::make_unique<HelpCommand>(
-		_client, *this, CommandInfo{ "help", "Show help", "" });
+	addCommand<SendFilesCommand>("send_files", "Send file(s)", "[file | path]");
+	addCommand<DownloadCommand>("download", "Download file(s)", "[file | path]");
 }
 
 bool CommandManager::execute(STRING_ARG name, ARG_VECTOR args)

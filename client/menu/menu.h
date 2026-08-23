@@ -118,8 +118,7 @@ class HelpCommand : public MenuItem {
 	CommandManager& _manager;
 
   public:
-	HelpCommand(Client& client, CommandManager& manager,
-	            const CommandInfo& info)
+	HelpCommand(Client& client, const CommandInfo& info, CommandManager& manager)
 	    : MenuItem(client, info), _manager(manager)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override;

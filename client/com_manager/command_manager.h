@@ -15,8 +15,8 @@ class CommandManager {
 	std::vector<CommandInfo> listCommands() const;
 
   private:
-	template <typename T>
-	void addCommand(STRING_ARG name, STRING_ARG desc, STRING_ARG usage);
+    template <typename T, typename... Args>
+    void addCommand(STRING_ARG name, STRING_ARG desc, STRING_ARG usage, Args&&... args);
 
 	std::unordered_map<std::string, std::unique_ptr<MenuItem>> _commands;
 	Client& _client;
