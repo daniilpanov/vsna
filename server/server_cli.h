@@ -7,14 +7,14 @@
 
 #include "config.h"
 #include "server.h"
-#include "utils.h"
+#include "helper.h"
 
 class ServerCLI {
-	std::shared_ptr<Server> _server;
-
   public:
-	ServerCLI() : _server(std::make_shared<Server>())
-	{}
+	ServerCLI() = default;
 	void run(int argc, char **argv);
 	void CLIParse(int argc, char **argv);
+
+  private:
+	std::shared_ptr<Server> _server = std::make_shared<Server>();
 };
