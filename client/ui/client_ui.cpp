@@ -62,7 +62,7 @@ void ClientUI::run(int argc, char **argv)
 	this->CLIParse(argc, argv);
 	_commandManager.initCommands();
 
-	// TUI call
+	//_tuiApp.run();
 	
 	_client.print();
 
