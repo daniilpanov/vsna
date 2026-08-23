@@ -54,8 +54,7 @@ void ClientCLI::CLIParse(int argc, char **argv)
 void ClientCLI::run(int argc, char **argv)
 {
 	this->CLIParse(argc, argv);
-	CommandManager cm(_client);
-	cm.initCommands(_commands);
+	_commandManager.initCommands();
 	_client.print();
 
 	std::string input;
@@ -68,15 +67,10 @@ void ClientCLI::run(int argc, char **argv)
 		if (args.empty())
 			continue;
 
-		auto it = _commands.find(args[0]);
-		if (it == _commands.end())
-		{
-			std::cout << "Unknown command: " << args[0] << std::endl;
-		}
-		else
-		{
-			if (it->second->handle(ARG_VECTOR(args.begin() + 1, args.end())))
-				break;
-		}
+		std::string name = args[0];
+		ARG_VECTOR cmdArgs(args.begin() + 1, args.end());
+
+		if (_commandManager.execute(name, cmdArgs))
+			break;
 	}
 }

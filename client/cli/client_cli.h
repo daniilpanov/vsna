@@ -14,10 +14,10 @@
 
 class ClientCLI {
 	Client& _client;
-	std::unordered_map<std::string, std::unique_ptr<MenuItem>> _commands;
+	CommandManager _commandManager;
 
   public:
-	ClientCLI(Client& client) : _client(client)
+	ClientCLI(Client& client) : _client(client), _commandManager(client)
 	{}
 	void CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);

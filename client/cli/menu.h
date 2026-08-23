@@ -1,8 +1,6 @@
 #pragma once
-#include <memory>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 #include "client.h"
@@ -14,9 +12,9 @@ class MenuItem {
 	Client& _client;
 
   public:
-	std::string_view name;
-	std::string_view desc;
-	std::string_view usage{ "" };
+	const std::string name;
+	const std::string desc;
+	const std::string usage{ "" };
 
 	virtual ~MenuItem() = default;
 	MenuItem(Client& client, std::string_view name, std::string_view desc, std::string_view usage) 
@@ -109,14 +107,15 @@ class ExitCommand : public MenuItem {
 	}
 };
 
+class CommandManager;
+
 class HelpCommand : public MenuItem {
-	std::unordered_map<std::string, std::unique_ptr<MenuItem>>& _commands;
+	CommandManager& _manager;
 
   public:
-	HelpCommand(Client& client,
-	            std::unordered_map<std::string, std::unique_ptr<MenuItem>>& commands,
+	HelpCommand(Client& client, CommandManager& manager,
 	            std::string_view name, std::string_view desc, std::string_view usage)
-	    : MenuItem(client, name, desc, usage), _commands(commands)
+	    : MenuItem(client, name, desc, usage), _manager(manager)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override;
 };

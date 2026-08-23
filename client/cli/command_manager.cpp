@@ -1,15 +1,41 @@
 #include "command_manager.h"
 
-void CommandManager::initCommands(
-    std::unordered_map<std::string, std::unique_ptr<MenuItem>>& _commands)
+// Write commands in lower case!
+void CommandManager::initCommands()
 {
-	auto add = [&](auto cmd) { _commands[cmd->name] = std::move(cmd); };
-	add(std::make_unique<ExitCommand>(_client, "exit", "Exit the program", ""));
-	add(std::make_unique<PrintCommand>(_client, "print", "Print the server path", ""));
-	add(std::make_unique<MyPathCommand>(_client, "mypath", "Show the client path", ""));
-	add(std::make_unique<ConnectCommand>(_client, "connect", "Connect to the server", ""));
-	add(std::make_unique<ShowPathCommand>(_client, "showpath", "Show the server path", ""));
-	add(std::make_unique<DownloadCommand>(_client, "download", "Download a file", ""));
-	add(std::make_unique<SendFilesCommand>(_client, "sendfiles", "Send files", ""));
-	add(std::make_unique<HelpCommand>(_client, _commands, "help", "Show help", "[command]"));
+	addCommand<ExitCommand>("exit", "Exit the program", "");
+	addCommand<SendFilesCommand>("sendfiles", "Send files", "");
+	addCommand<DownloadCommand>("download", "Download a file", "");
+	addCommand<PrintCommand>("print", "Print the server path", "");
+	addCommand<MyPathCommand>("mypath", "Show the client path", "");
+	addCommand<ConnectCommand>("connect", "Connect to the server", "");
+	addCommand<ShowPathCommand>("showpath", "Show the server path", "");
+	_commands["help"] = std::make_unique<HelpCommand>(
+		_client, *this, "help", "Show help", "[command]");
+}
+
+bool CommandManager::execute(STRING_ARG name, ARG_VECTOR args)
+{
+	auto it = _commands.find(std::string(name));
+	if (it == _commands.end())
+	{
+		std::cout << "Unknown command: " << name << std::endl;
+		return false;
+	}
+	return it->second->handle(args);
+}
+
+std::vector<CommandInfo> CommandManager::listCommands() const
+{
+	std::vector<CommandInfo> result;
+	result.reserve(_commands.size());
+	for (const auto& [name, cmd] : _commands)
+		result.push_back({std::string(name), std::string(cmd->desc), std::string(cmd->usage)});
+	return result;
+}
+
+template <typename T>
+void CommandManager::addCommand(STRING_ARG name, STRING_ARG desc, STRING_ARG usage)
+{
+	_commands[std::string(name)] = std::make_unique<T>(_client, name, desc, usage);
 }

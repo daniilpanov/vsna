@@ -1,15 +1,16 @@
 #include "menu.h"
+#include "command_manager.h"
 
 bool HelpCommand::handle(CONST_ARG_VECTOR args)
 {
+	auto commands = _manager.listCommands();
 	std::cout << "[=] Available commands:" << std::endl;
-	for (const auto& [name, cmd] : _commands)
+	for (const auto& cmd : commands)
 	{
-		auto usage = cmd->usage;
-		std::cout << "\t" << name;
-		if (!usage.empty())
-			std::cout << " " << usage;
-		std::cout << " - " << cmd->desc << std::endl;
+		std::cout <<
+		"\t" << cmd.name <<
+		" " << cmd.usage <<
+		" - " << cmd.description << std::endl;
 	}
 	return false;
 }
