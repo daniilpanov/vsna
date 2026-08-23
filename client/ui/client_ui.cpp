@@ -51,6 +51,12 @@ void ClientUI::CLIParse(int argc, char **argv)
 	}
 }
 
+std::pair<std::string, std::vector<std::string>> ClientUI::parseArgs(STRING_ARG input)
+{
+	std::vector<std::string> args = splitArgs(input);
+	return { args[0], std::vector<std::string>(args.begin() + 1, args.end()) };
+}
+
 void ClientUI::run(int argc, char **argv)
 {
 	this->CLIParse(argc, argv);
@@ -65,13 +71,10 @@ void ClientUI::run(int argc, char **argv)
 	{
 		std::cout << "> ";
 		std::getline(std::cin, input);
-		ARG_VECTOR args = splitArgs(input);
+		auto [name, cmdArgs] = parseArgs(input);
 
-		if (args.empty())
+		if (name.empty())
 			continue;
-
-		std::string name = args[0];
-		ARG_VECTOR cmdArgs(args.begin() + 1, args.end());
 
 		if (_commandManager.execute(name, cmdArgs))
 			break;

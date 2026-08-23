@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -7,26 +8,30 @@
 #include "config.h"
 #include "types.h"
 
+struct CommandInfo {
+	std::string name;
+	std::string description;
+	std::string usage{ "" };
+};
+
 class MenuItem {
   protected:
 	Client& _client;
 
   public:
-	const std::string name;
-	const std::string desc;
-	const std::string usage{ "" };
+      const CommandInfo _info;
 
 	virtual ~MenuItem() = default;
-	MenuItem(Client& client, std::string_view name, std::string_view desc, std::string_view usage) 
-	    : _client(client), name(name), desc(desc), usage(usage)
+	MenuItem(Client& client, const CommandInfo& info) 
+	    : _client(client), _info(info)
 	{}
-	virtual bool handle(CONST_ARG_VECTOR) = false;
+	virtual bool handle(CONST_ARG_VECTOR) = 0;
 };
 
 class ConnectCommand : public MenuItem {
   public:
-	ConnectCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage) 
-	    : MenuItem(client, name, desc, usage)
+	ConnectCommand(Client& client, const CommandInfo& info) 
+	    : MenuItem(client, info)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
@@ -37,8 +42,8 @@ class ConnectCommand : public MenuItem {
 
 class ShowPathCommand : public MenuItem {
   public:
-	ShowPathCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
-	    : MenuItem(client, name, desc, usage)
+	ShowPathCommand(Client& client, const CommandInfo& info)
+	    : MenuItem(client, info)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
@@ -49,8 +54,8 @@ class ShowPathCommand : public MenuItem {
 
 class MyPathCommand : public MenuItem {
   public:
-	MyPathCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
-	    : MenuItem(client, name, desc, usage)
+	MyPathCommand(Client& client, const CommandInfo& info)
+	    : MenuItem(client, info)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
@@ -61,8 +66,8 @@ class MyPathCommand : public MenuItem {
 
 class SendFilesCommand : public MenuItem {
   public:
-	SendFilesCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
-	    : MenuItem(client, name, desc, usage)
+	SendFilesCommand(Client& client, const CommandInfo& info)
+	    : MenuItem(client, info)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
@@ -73,8 +78,8 @@ class SendFilesCommand : public MenuItem {
 
 class DownloadCommand : public MenuItem {
   public:
-	DownloadCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
-	    : MenuItem(client, name, desc, usage)
+	DownloadCommand(Client& client, const CommandInfo& info)
+	    : MenuItem(client, info)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
@@ -85,8 +90,8 @@ class DownloadCommand : public MenuItem {
 
 class PrintCommand : public MenuItem {
   public:
-	PrintCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
-	    : MenuItem(client, name, desc, usage)
+	PrintCommand(Client& client, const CommandInfo& info)
+	    : MenuItem(client, info)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
@@ -97,8 +102,8 @@ class PrintCommand : public MenuItem {
 
 class ExitCommand : public MenuItem {
   public:
-	ExitCommand(Client& client, std::string_view name, std::string_view desc, std::string_view usage)
-	    : MenuItem(client, name, desc, usage)
+	ExitCommand(Client& client, const CommandInfo& info)
+	    : MenuItem(client, info)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override
 	{
@@ -114,8 +119,8 @@ class HelpCommand : public MenuItem {
 
   public:
 	HelpCommand(Client& client, CommandManager& manager,
-	            std::string_view name, std::string_view desc, std::string_view usage)
-	    : MenuItem(client, name, desc, usage), _manager(manager)
+	            const CommandInfo& info)
+	    : MenuItem(client, info), _manager(manager)
 	{}
 	bool handle(CONST_ARG_VECTOR args) override;
 };

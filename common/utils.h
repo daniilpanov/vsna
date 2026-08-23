@@ -19,10 +19,3 @@ inline ARG_VECTOR splitArgs(STRING_ARG input)
 	}
 	return args;
 }
-
-inline std::string toLowerCase(STRING_ARG str)
-{
-	std::string result = str;
-	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
-	return result;
-}

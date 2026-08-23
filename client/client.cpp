@@ -12,14 +12,18 @@ void Client::showPath(CONST_ARG_VECTOR args) const
 
 void Client::myPath(CONST_ARG_VECTOR args) const
 {
-	std::cout << "Client path: " << _config.getPath() << std::endl;
+	std::cout << "Current path: " << _config.getPath() << std::endl;
 }
 
 void Client::sendFiles(CONST_ARG_VECTOR args)
-{}
+{
+	std::cout << "Sending files..." << std::endl;
+}
 
 void Client::download(CONST_ARG_VECTOR args)
-{}
+{
+	std::cout << "Downloading..." << std::endl;
+}
 
 void Client::connect(CONST_ARG_VECTOR args)
 {

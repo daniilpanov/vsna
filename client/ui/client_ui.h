@@ -13,13 +13,14 @@
 #include "utils.h"
 
 class ClientUI {
-	Client& _client;
+	Client _client;
 	CommandManager _commandManager;
 	
 
   public:
-	ClientUI(Client& client) : _client(client), _commandManager(client)
+	ClientUI() : _commandManager(_client)
 	{}
 	void CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);
+	std::pair<std::string, std::vector<std::string>> parseArgs(STRING_ARG input);
 };

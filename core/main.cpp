@@ -22,8 +22,7 @@ int main(int argc, char *argv[])
 
 #if BUILD_CLIENT
 	std::cout << "Built as a client." << std::endl;
-	Client client;
-	ClientUI clientUI(client);
+	ClientUI clientUI;
 	clientUI.run(argc, argv);
 #endif
 
