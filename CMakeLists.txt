@@ -99,13 +99,6 @@ target_include_directories(client PUBLIC
     ${COMMON_DIR}
 )
 
-# Copy config.json
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/config.json
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>/config.json
-)
-
 # Compile definitions
 if (SERVER)
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_SERVER=1)
