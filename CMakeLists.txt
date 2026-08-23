@@ -24,12 +24,12 @@ set(CLIENT_DIR   ${PROJECT_ROOT}/client)
 # Sources
 # TOOO : Can be replaced with file(GLOB_RECURSE)
 set(COMMON_SOURCES
-    ${COMMON_DIR}/addr.cpp
-    ${COMMON_DIR}/addr.h
-    ${COMMON_DIR}/config.cpp 
-    ${COMMON_DIR}/config.h
-    ${COMMON_DIR}/logger.cpp
-    ${COMMON_DIR}/logger.h
+    ${COMMON_DIR}/addr/addr.cpp
+    ${COMMON_DIR}/addr/addr.h
+    ${COMMON_DIR}/config/config.cpp 
+    ${COMMON_DIR}/config/config.h
+    ${COMMON_DIR}/logger/logger.cpp
+    ${COMMON_DIR}/logger/logger.h
 )
 set(SERVER_SOURCES
     ${SERVER_DIR}/server.cpp
@@ -76,7 +76,12 @@ endif()
 
 # Common
 add_library(common STATIC ${COMMON_SOURCES})
-target_include_directories(common PUBLIC ${COMMON_DIR})
+target_include_directories(common PUBLIC
+    ${COMMON_DIR}
+    ${COMMON_DIR}/addr
+    ${COMMON_DIR}/config
+    ${COMMON_DIR}/logger
+)
 target_link_libraries(common PUBLIC Boost::headers ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} PRIVATE common)
 
