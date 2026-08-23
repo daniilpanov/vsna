@@ -4,14 +4,14 @@
 void CommandManager::initCommands()
 {
 	addCommand<ExitCommand>("exit", "Exit the program", "");
-	addCommand<SendFilesCommand>("sendfiles", "Send files", "");
-	addCommand<DownloadCommand>("download", "Download a file", "");
+	addCommand<SendFilesCommand>("send_files", "Send files", "[file | path]");
+	addCommand<DownloadCommand>("download", "Download a file", "[file | path]");
 	addCommand<PrintCommand>("print", "Print the server path", "");
 	addCommand<MyPathCommand>("mypath", "Show the client path", "");
-	addCommand<ConnectCommand>("connect", "Connect to the server", "");
-	addCommand<ShowPathCommand>("showpath", "Show the server path", "");
+	addCommand<ConnectCommand>("connect", "Connect to the server", "[ip:port]");
+	addCommand<ShowPathCommand>("show_path", "Show the server path", "[file | path]");
 	_commands["help"] = std::make_unique<HelpCommand>(
-		_client, *this, "help", "Show help", "[command]");
+		_client, *this, "help", "Show help", "");
 }
 
 bool CommandManager::execute(STRING_ARG name, ARG_VECTOR args)

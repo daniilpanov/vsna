@@ -12,12 +12,13 @@
 #include "menu.h"
 #include "utils.h"
 
-class ClientCLI {
+class ClientUI {
 	Client& _client;
 	CommandManager _commandManager;
+	
 
   public:
-	ClientCLI(Client& client) : _client(client), _commandManager(client)
+	ClientUI(Client& client) : _client(client), _commandManager(client)
 	{}
 	void CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);

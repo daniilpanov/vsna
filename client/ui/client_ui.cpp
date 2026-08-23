@@ -1,6 +1,6 @@
-#include "client_cli.h"
+#include "client_ui.h"
 
-void ClientCLI::CLIParse(int argc, char **argv)
+void ClientUI::CLIParse(int argc, char **argv)
 {
 	CLI::App app{ "VSNA Client" };
 
@@ -51,10 +51,13 @@ void ClientCLI::CLIParse(int argc, char **argv)
 	}
 }
 
-void ClientCLI::run(int argc, char **argv)
+void ClientUI::run(int argc, char **argv)
 {
 	this->CLIParse(argc, argv);
 	_commandManager.initCommands();
+
+	// TUI call
+	
 	_client.print();
 
 	std::string input;

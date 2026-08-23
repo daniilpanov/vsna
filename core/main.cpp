@@ -8,7 +8,7 @@
 #endif
 
 #if BUILD_CLIENT
-#include "client_cli.h"
+#include "client_ui.h"
 #endif
 
 int main(int argc, char *argv[])
@@ -23,8 +23,8 @@ int main(int argc, char *argv[])
 #if BUILD_CLIENT
 	std::cout << "Built as a client." << std::endl;
 	Client client;
-	ClientCLI clientCLI(client);
-	clientCLI.run(argc, argv);
+	ClientUI clientUI(client);
+	clientUI.run(argc, argv);
 #endif
 
 	return EXIT_SUCCESS;

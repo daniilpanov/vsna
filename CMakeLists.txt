@@ -25,25 +25,20 @@ set(CLIENT_DIR   ${PROJECT_ROOT}/client)
 # TOOO : Can be replaced with file(GLOB_RECURSE)
 set(COMMON_SOURCES
     ${COMMON_DIR}/addr/addr.cpp
-    ${COMMON_DIR}/addr/addr.h
     ${COMMON_DIR}/config/config.cpp 
-    ${COMMON_DIR}/config/config.h
     ${COMMON_DIR}/logger/logger.cpp
-    ${COMMON_DIR}/logger/logger.h
 )
 set(SERVER_SOURCES
     ${SERVER_DIR}/server.cpp
-    ${SERVER_DIR}/server.h
     ${SERVER_DIR}/server_cli.cpp
-    ${SERVER_DIR}/server_cli.h
     ${SERVER_DIR}/session.cpp
 )
 set(CLIENT_SOURCES
     ${CLIENT_DIR}/client.cpp
-    ${CLIENT_DIR}/session.cpp
-    ${CLIENT_DIR}/cli/client_cli.cpp
-    ${CLIENT_DIR}/cli/menu.cpp
-    ${CLIENT_DIR}/cli/command_manager.cpp
+    ${CLIENT_DIR}/session/session.cpp
+    ${CLIENT_DIR}/ui/client_ui.cpp
+    ${CLIENT_DIR}/menu/menu.cpp
+    ${CLIENT_DIR}/com_manager/command_manager.cpp
 )
 
 # Core
@@ -95,7 +90,10 @@ add_library(client STATIC ${CLIENT_SOURCES})
 target_link_libraries(client PRIVATE common)
 target_include_directories(client PUBLIC
     ${CLIENT_DIR} 
-    ${CLIENT_DIR}/cli 
+    ${CLIENT_DIR}/ui
+    ${CLIENT_DIR}/menu
+    ${CLIENT_DIR}/com_manager
+    ${CLIENT_DIR}/session
     ${COMMON_DIR}
 )
 
