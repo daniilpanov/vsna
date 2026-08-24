@@ -84,28 +84,25 @@ target_include_directories(utils PUBLIC
 target_link_libraries(utils PUBLIC Boost::headers ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} PRIVATE utils)
 
-# Server
-add_library(server STATIC ${SERVER_SOURCES})
-target_link_libraries(server PRIVATE utils)
-target_include_directories(server PUBLIC ${SERVER_DIR})
-
-# Client
-add_library(client STATIC ${CLIENT_SOURCES})
-target_link_libraries(client PRIVATE utils)
-target_include_directories(client PUBLIC
-    ${CLIENT_DIR}
-    ${CLIENT_DIR}/ui
-    ${CLIENT_DIR}/menu
-    ${CLIENT_DIR}/com_manager
-    ${CLIENT_DIR}/session
-)
-
 # Compile definitions
 if (SERVER)
+    add_library(server STATIC ${SERVER_SOURCES})
+    target_link_libraries(server PRIVATE utils)
+    target_include_directories(server PUBLIC ${SERVER_DIR})
+
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_SERVER=1)
     target_link_libraries(${PROJECT_NAME} PRIVATE server)
     target_include_directories(${PROJECT_NAME} PRIVATE ${SERVER_DIR})
 elseif (CLIENT)
+    add_library(client STATIC ${CLIENT_SOURCES})
+    target_link_libraries(client PRIVATE utils)
+    target_include_directories(client PUBLIC
+        ${CLIENT_DIR}
+        ${CLIENT_DIR}/ui
+        ${CLIENT_DIR}/menu
+        ${CLIENT_DIR}/com_manager
+        ${CLIENT_DIR}/session)
+
     target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_CLIENT=1)
     target_link_libraries(${PROJECT_NAME} PRIVATE client)
     target_include_directories(${PROJECT_NAME} PRIVATE ${CLIENT_DIR})
