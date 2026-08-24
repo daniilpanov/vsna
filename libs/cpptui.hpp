@@ -14967,14 +14967,6 @@ class Tabs : public Container {
 
   void set_tab(int index) { select_tab(index); }
 
-  /// @brief Add an action button rendered right-aligned in the header row
-  /// (e.g. Quit). Clicking it does not switch tabs.
-  void add_action_button(std::shared_ptr<Button> btn) {
-    btn->focusable = true;
-    btn->tab_stop = true;
-    action_buttons_.push_back(btn);
-  }
-
   void next_tab() {
     if (children_.empty()) return;
     select_tab((current_tab + 1) % children_.size());
@@ -15004,13 +14996,6 @@ class Tabs : public Container {
     // 3. Overflow next button (if visible)
     if (show_nav_buttons_ && next_btn_->visible) {
       combined_children_.push_back(next_btn_);
-    }
-
-    // 3.5 Action buttons (right-aligned header buttons)
-    for (auto &btn : action_buttons_) {
-      if (btn && btn->visible) {
-        combined_children_.push_back(btn);
-      }
     }
 
     // 4. Current tab content
@@ -15091,25 +15076,6 @@ class Tabs : public Container {
       btn_x += btn_w + 1;  // +1 for gap
     }
 
-    // Layout action buttons right after the tab buttons
-    for (auto &btn : action_buttons_) {
-      if (!btn) continue;
-      int btn_w = utf8_display_width(btn->get_label()) + 2;  // " " + name + " "
-
-      if (btn_x + btn_w > max_btn_x) {
-        btn->visible = false;
-        continue;
-      }
-
-      btn->x = btn_x;
-      btn->y = btn_y;
-      btn->width = btn_w;
-      btn->height = 1;
-      btn->visible = true;
-
-      btn_x += btn_w + 1;  // +1 for gap
-    }
-
     update_button_states();
 
     // Layout content children
@@ -15159,14 +15125,6 @@ class Tabs : public Container {
         btn->text_color = Theme::current().border;
       }
 
-      btn->render(buffer);
-    }
-
-    // Render action buttons (inactive tab styling)
-    for (auto &btn : action_buttons_) {
-      if (!btn || !btn->visible) continue;
-      btn->bg_color = inactive_bg;
-      btn->text_color = Theme::current().border;
       btn->render(buffer);
     }
 
@@ -15230,11 +15188,6 @@ class Tabs : public Container {
       if (btn->visible && btn->on_event(event)) return true;
     }
 
-    // Pass events to action buttons (e.g. Quit)
-    for (auto &btn : action_buttons_) {
-      if (btn && btn->visible && btn->on_event(event)) return true;
-    }
-
     // Keyboard navigation when any tab button is focused
     if (event.is_key_event()) {
       bool any_tab_focused = false;
@@ -15266,17 +15219,16 @@ class Tabs : public Container {
             return true;
           }
         }
+      }
 
-        // Tab switching shortcuts - only while a tab header is focused,
-        // so they never hijack typing in inputs on other widgets
-        if (event.key == '[' || event.key == 'p') {
-          prev_tab();
-          return true;
-        }
-        if (event.key == ']' || event.key == 'n' || event.key == '/') {
-          next_tab();
-          return true;
-        }
+      // Global tab switching shortcuts
+      if (event.key == '[' || event.key == 'p') {
+        prev_tab();
+        return true;
+      }
+      if (event.key == ']' || event.key == 'n' || event.key == '/') {
+        next_tab();
+        return true;
       }
     }
 
@@ -15289,7 +15241,6 @@ class Tabs : public Container {
 
  private:
   std::vector<std::shared_ptr<Button>> tab_buttons_;
-  std::vector<std::shared_ptr<Button>> action_buttons_;
   std::shared_ptr<Button> prev_btn_;
   std::shared_ptr<Button> next_btn_;
   mutable std::vector<std::shared_ptr<Widget>> combined_children_;

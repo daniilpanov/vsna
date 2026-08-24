@@ -29,11 +29,14 @@ cmd_init() {
         echo "-- Installed Boost" 
     fi
     
-    wget -P common/libs https://github.com/CLIUtils/CLI11/releases/download/v2.7.2/CLI11.hpp
+    wget -P "$ROOT/libs" https://github.com/CLIUtils/CLI11/releases/download/v2.7.2/CLI11.hpp
     echo "-- Installed CLI11"
 
-    wget -P common/libs https://github.com/nlohmann/json/releases/download/v3.12.0/json.hpp
+    wget -P "$ROOT/libs" https://github.com/nlohmann/json/releases/download/v3.12.0/json.hpp
     echo "-- Installed nlohmann/json"
+
+    wget -P "$ROOT/libs" https://raw.githubusercontent.com/jonoton/cpp-tui/v1.12.0/cpptui.hpp
+    echo "-- Installed cpptui"
 
     echo "-- Done!"
     exit 0

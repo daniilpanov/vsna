@@ -8,7 +8,7 @@ SOURCE_EXTENSIONS := \
 EXCLUDED_DIRS := \
 	./.git \
 	./out \
-	./common/libs
+	./libs
 
 .PHONY: list-format-files format
 
