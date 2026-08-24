@@ -10,7 +10,7 @@
 #include "command_manager.h"
 #include "config.h"
 #include "menu.h"
-#include "utils.h"
+#include "helper.h"
 
 class ClientUI {
 	Client _client;

@@ -12,9 +12,6 @@
 using json = nlohmann::json;
 
 class Config {
-	Addr _addr;
-	std::string _path;
-
   public:
 	Config() = default;
 	Config(const Addr&, STRING_ARG);
@@ -33,4 +30,8 @@ class Config {
 	}
 
 	std::string toString() const;
+	
+  private:
+	Addr _addr;
+	std::string _path;
 };

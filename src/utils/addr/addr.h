@@ -6,9 +6,6 @@
 #include "types.h"
 
 class Addr {
-	std::string _ip{ "0.0.0.0" };
-	std::string _port{ "5555" };
-
   public:
 	Addr() = default;
 	Addr(STRING_ARG, STRING_ARG);
@@ -33,4 +30,8 @@ class Addr {
 	{
 		return _ip + ":" + _port;
 	}
+
+  private:
+	std::string _ip{ "0.0.0.0" };
+	std::string _port{ "5555" };
 };
