@@ -4,7 +4,8 @@
 # Dependencies
 - `boost` - asio + beast (_websocket_);
 - `CLI11` - command line interface parser;
-- `nlohmann/json` - JSON parsing library.
+- `nlohmann/json` - JSON parsing library;
+- `cpptui` - text based user interface library.
 
 # Build
 First you need to initialize boost via `vcpkg`.
@@ -44,7 +45,7 @@ If you use Unix system, you can do the same actions via Shell scripts:
 - With config file:
 
 ```bash
-.\out\client\Debug\vsna_client.exe -c config.example.json
+.\out\client\Debug\vsna_client.exe -c .\config\config.example.json
 ```
 
 **Server**
@@ -58,7 +59,7 @@ If you use Unix system, you can do the same actions via Shell scripts:
 - With config file:
 
 ```bash
-.\out\server\Debug\vsna_server.exe -c config.example.json
+.\out\server\Debug\vsna_server.exe -c .\config\config.example.json
 ```
 
 **CLI Scheme**
@@ -70,3 +71,50 @@ If you use Unix system, you can do the same actions via Shell scripts:
 | `-i`, `--ip <ip>` | set client/server address | 0.0.0.0 |
 | `-d`, `--dir <path>` | set client/server path | <current directory> |
 | `-c`, `--config <path>` | set config file path | none |
+
+**Project Tree**
+```
+vsna/
+├── .clang-format              # правила форматирования кода
+├── Makefile                   # хелпер форматирования кода
+├── .gitignore
+├── init_modules.bat / .sh     # инициализация зависимостей (vcpkg)
+├── build.bat / build.sh       # сборка: cmake configure + build (--server/--client/--clean)
+├── CMakeLists.txt             # корневой сценарий сборки (цели: vsna exe + utils/client/server libs)
+├── README.md
+│
+├── config/                    # конфиги приложения
+│   └── config.example.json    # шаблон для новых развёртываний
+│
+├── libs/                      # header-only сторонние библиотеки
+│   ├── CLI11.hpp              # парсер аргументов командной строки
+│   ├── cpptui.hpp             # TUI-фреймворк
+│   └── json.hpp               # парсинг config.json
+│
+└── src/                       # весь исходный код
+    ├── main.cpp               # точка входа; BUILD_SERVER/BUILD_CLIENT выбирают роль
+    │
+    ├── client/                # КЛИЕНТСКАЯ ЧАСТЬ
+    │   ├── client.{h,cpp}     # Client: io_context, connect/sendFiles/download (stub'ы)
+    │   ├── session/           # исходящий WebSocket-сеанс (ClientSession, пока one-shot)
+    │   ├── ui/
+    │   │   ├── client_ui.*    # ClientUI: CLI11-парсинг, REPL-цикл, владеет CommandManager
+    │   │   └── tui.*          # демо-TUI на cpptui (в сборку не входит, ждёт адаптации)
+    │   ├── menu/              # MenuItem-иерархия: классы-команды (connect, help, exit...)
+    │   └── com_manager/       # CommandManager: реестр и вызов команд
+    │
+    ├── server/                # СЕРВЕРНАЯ ЧАСТЬ (цель server.lib)
+    │   ├── server_cli.*       # ServerCLI: CLI11-парсинг, владеет Server
+    │   ├── server.*           # Server: acceptor + пул потоков, цикл приёма соединений
+    │   └── session.*          # ServerSession: WS-сессия клиента (read => echo => read)
+    │
+    ├── common/types/          # общие типы
+    │   ├── types.h            # STRING_ARG, ARG_VECTOR и др. алиасы
+    │   └── pch.h              # precompiled header: boost/beast алиасы, fail()
+    │
+    └── utils/                 # утилиты общего назначения (цель utils.lib)
+        ├── addr/              # Addr: ip:port, валидация, toString
+        ├── config/            # Config: загрузка из json, getAddr/getPath
+        ├── helpers/helper.h   # inline-утилиты: trim, splitArgs, isValidIPv4
+        └── logger/            # Logger: файловый лог с уровнями
+```
