@@ -15,8 +15,7 @@ int main(int argc, char *argv[])
 {
 #if BUILD_SERVER
 	std::cout << "Built as a server." << std::endl;
-	Server server;
-	ServerCLI serverCLI(server);
+	ServerCLI serverCLI;
 	serverCLI.run(argc, argv);
 #endif
 

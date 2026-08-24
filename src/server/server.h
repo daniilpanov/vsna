@@ -14,7 +14,8 @@ using socket_ptr = boost::shared_ptr<tcp::socket>;
 
 class Server : public std::enable_shared_from_this<Server> {
   public:
-	Server();
+	Server() : _io_context(max_threads), _acceptor(_io_context)
+	{}
 	void run();
 
 	void setConfig(const Config& config)
@@ -32,7 +33,7 @@ class Server : public std::enable_shared_from_this<Server> {
 	tcp::acceptor _acceptor;
 	std::vector<std::thread> _threads;
 
-	void start_accept();
+	void setup_acceptor();
 	void do_accept();
 	void on_accept(beast::error_code ec, tcp::socket socket);
 };

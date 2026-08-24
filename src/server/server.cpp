@@ -1,7 +1,6 @@
 #include "server.h"
 
-Server::Server()
-    : _io_context(max_threads), _acceptor(_io_context)
+void Server::setup_acceptor()
 {
 	beast::error_code ec;
 	tcp::endpoint endpoint(asio::ip::make_address(_config.getAddr().ip()),
@@ -14,16 +13,16 @@ Server::Server()
 		fail(ec, "open");
 		return;
 	}
-	std::cout << "opened\n";
+	std::cout << "opened" << std::endl;
 
 	// Allow address reuse
 	_acceptor.set_option(asio::socket_base::reuse_address(true), ec);
 	if (ec)
 	{
-		fail(ec, "set_oprion");
+		fail(ec, "set_option");
 		return;
 	}
-	std::cout << "set_option\n";
+	std::cout << "set_option" << std::endl;
 
 	// Bind to the server address
 	_acceptor.bind(endpoint, ec);
@@ -32,7 +31,7 @@ Server::Server()
 		fail(ec, "bind");
 		return;
 	}
-	std::cout << "binded\n";
+	std::cout << "binded" << std::endl;
 
 	// Start listening for connections
 	_acceptor.listen(asio::socket_base::max_listen_connections, ec);
@@ -41,12 +40,13 @@ Server::Server()
 		fail(ec, "listen");
 		return;
 	}
-	std::cout << "listening\n";
+	std::cout << "listening" << std::endl;
 }
 
 void Server::run()
 {
-	start_accept();
+    setup_acceptor();
+	do_accept();
 	std::cout << "Server is running on " << _config.getAddr().toString() << std::endl;
 
 	_threads.reserve(max_threads - 1);
@@ -60,11 +60,6 @@ void Server::run()
 	std::cout << "PID: " << getpid() << '\n';
 	std::cout << "Main thread started." << std::endl;
 	_io_context.run();
-}
-
-void Server::start_accept()
-{
-	do_accept();
 }
 
 void Server::do_accept()
