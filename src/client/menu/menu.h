@@ -25,7 +25,7 @@ class MenuItem {
 	MenuItem(Client& client, const CommandInfo& info) 
 	    : _client(client), _info(info)
 	{}
-	virtual bool handle(CONST_ARG_VECTOR) = 0;
+	virtual bool handle(ARG_VECTOR) = 0;
 };
 
 class ConnectCommand : public MenuItem {
@@ -33,7 +33,7 @@ class ConnectCommand : public MenuItem {
 	ConnectCommand(Client& client, const CommandInfo& info) 
 	    : MenuItem(client, info)
 	{}
-	bool handle(CONST_ARG_VECTOR args) override
+	bool handle(ARG_VECTOR args) override
 	{
 		_client.connect(args);
 		return false;
@@ -45,7 +45,7 @@ class ShowPathCommand : public MenuItem {
 	ShowPathCommand(Client& client, const CommandInfo& info)
 	    : MenuItem(client, info)
 	{}
-	bool handle(CONST_ARG_VECTOR args) override
+	bool handle(ARG_VECTOR args) override
 	{
 		_client.showPath(args);
 		return false;
@@ -57,7 +57,7 @@ class MyPathCommand : public MenuItem {
 	MyPathCommand(Client& client, const CommandInfo& info)
 	    : MenuItem(client, info)
 	{}
-	bool handle(CONST_ARG_VECTOR args) override
+	bool handle(ARG_VECTOR args) override
 	{
 		_client.myPath(args);
 		return false;
@@ -69,7 +69,7 @@ class SendFilesCommand : public MenuItem {
 	SendFilesCommand(Client& client, const CommandInfo& info)
 	    : MenuItem(client, info)
 	{}
-	bool handle(CONST_ARG_VECTOR args) override
+	bool handle(ARG_VECTOR args) override
 	{
 		_client.sendFiles(args);
 		return false;
@@ -81,7 +81,7 @@ class DownloadCommand : public MenuItem {
 	DownloadCommand(Client& client, const CommandInfo& info)
 	    : MenuItem(client, info)
 	{}
-	bool handle(CONST_ARG_VECTOR args) override
+	bool handle(ARG_VECTOR args) override
 	{
 		_client.download(args);
 		return false;
@@ -93,7 +93,7 @@ class PrintCommand : public MenuItem {
 	PrintCommand(Client& client, const CommandInfo& info)
 	    : MenuItem(client, info)
 	{}
-	bool handle(CONST_ARG_VECTOR args) override
+	bool handle(ARG_VECTOR args) override
 	{
 		_client.print();
 		return false;
@@ -105,7 +105,7 @@ class ExitCommand : public MenuItem {
 	ExitCommand(Client& client, const CommandInfo& info)
 	    : MenuItem(client, info)
 	{}
-	bool handle(CONST_ARG_VECTOR args) override
+	bool handle(ARG_VECTOR args) override
 	{
 		std::cout << "[~] Program was exit." << std::endl;
 		return true;
@@ -121,5 +121,5 @@ class HelpCommand : public MenuItem {
 	HelpCommand(Client& client, const CommandInfo& info, CommandManager& manager)
 	    : MenuItem(client, info), _manager(manager)
 	{}
-	bool handle(CONST_ARG_VECTOR args) override;
+	bool handle(ARG_VECTOR args) override;
 };

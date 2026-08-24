@@ -22,12 +22,12 @@ class Client {
 		return _config;
 	}
 
-	void connect(CONST_ARG_VECTOR);
+	void connect(ARG_VECTOR);
 	void print() const;
-	void showPath(CONST_ARG_VECTOR) const;
-	void myPath(CONST_ARG_VECTOR) const;
-	void sendFiles(CONST_ARG_VECTOR);
-	void download(CONST_ARG_VECTOR);
+	void showPath(ARG_VECTOR) const;
+	void myPath(ARG_VECTOR) const;
+	void sendFiles(ARG_VECTOR);
+	void download(ARG_VECTOR);
 
   private:
     Config _config;

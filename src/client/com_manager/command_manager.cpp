@@ -21,7 +21,7 @@ void CommandManager::initCommands()
 	addCommand<DownloadCommand>("download", "Download file(s)", "[file | path]");
 }
 
-bool CommandManager::execute(STRING_ARG name, ARG_VECTOR args)
+bool CommandManager::execute(STRING_ARG name, STRING_VECTOR args)
 {
 	auto it = _commands.find(std::string(name));
 	if (it == _commands.end())

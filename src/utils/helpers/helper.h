@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/asio/ip/address.hpp>
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -15,9 +16,9 @@ inline std::string trim(STRING_ARG s) {
   return s.substr(begin, end - begin + 1);
 }
 
-inline ARG_VECTOR splitArgs(STRING_ARG input)
+inline STRING_VECTOR splitArgs(STRING_ARG input)
 {
-	ARG_VECTOR args;
+	STRING_VECTOR args;
 	std::stringstream ss(input);
 	std::string token;
 	while (ss >> token)
@@ -25,4 +26,17 @@ inline ARG_VECTOR splitArgs(STRING_ARG input)
 		args.push_back(trim(token));
 	}
 	return args;
+}
+
+inline bool isValidIPv4(STRING_ARG ipString)
+{
+	try
+	{
+		boost::asio::ip::address addr = boost::asio::ip::make_address(ipString);
+		return addr.is_v4();
+	}
+	catch (const boost::system::system_error&)
+	{
+		return false;
+	}
 }

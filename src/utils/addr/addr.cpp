@@ -6,19 +6,6 @@ Addr::Addr(STRING_ARG ip, STRING_ARG port)
 	setPort(port);
 }
 
-bool isValidIPv4(STRING_ARG ipString)
-{
-	try
-	{
-		boost::asio::ip::address addr = boost::asio::ip::make_address(ipString);
-		return addr.is_v4();
-	}
-	catch (const boost::system::system_error&)
-	{
-		return false;
-	}
-}
-
 void Addr::setIp(STRING_ARG ip)
 {
 	if (ip.empty())

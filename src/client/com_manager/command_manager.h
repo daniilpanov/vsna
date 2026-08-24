@@ -11,7 +11,7 @@ class CommandManager {
   public:
 	CommandManager(Client& client) : _client(client) {};
 	void initCommands();
-	bool execute(STRING_ARG name, ARG_VECTOR args);
+	bool execute(STRING_ARG name, STRING_VECTOR args);
 	std::vector<CommandInfo> listCommands() const;
 
   private:

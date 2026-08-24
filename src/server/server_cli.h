@@ -16,5 +16,5 @@ class ServerCLI {
 	void CLIParse(int argc, char **argv);
 
   private:
-	std::shared_ptr<Server> _server = std::make_shared<Server>();
+	std::shared_ptr<Server> _server{ std::make_shared<Server>() };
 };

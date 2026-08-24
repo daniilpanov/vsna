@@ -1,9 +1,9 @@
 #pragma once
-#include <boost/asio/ip/address.hpp>
 #include <sstream>
 #include <string>
 
 #include "types.h"
+#include "helper.h"
 
 class Addr {
   public:
