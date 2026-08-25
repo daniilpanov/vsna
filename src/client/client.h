@@ -10,7 +10,7 @@
 
 class Client {
   public:
-	Client() : _config(), _io_context(), _resolver(_io_context)
+	Client() : _config(), _io_context()
 	{}
 
 	void setConfig(const Config& config)
@@ -29,9 +29,9 @@ class Client {
 	void sendFiles(ARG_VECTOR);
 	void download(ARG_VECTOR);
 	void sendMsg(ARG_VECTOR);
+	void disconnect();
 
   private:
     Config _config;
 	boost::asio::io_context _io_context;
-	tcp::resolver _resolver;
 };

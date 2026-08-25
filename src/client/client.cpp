@@ -42,3 +42,9 @@ void Client::sendMsg(ARG_VECTOR args)
 	std::cout << "Message: " << msg << std::endl;
 	std::cout << "Message length: " << msg.length() << std::endl;
 }
+
+void Client::disconnect()
+{
+	std::cout << "Disconnecting..." << std::endl;
+	_io_context.stop();
+}
