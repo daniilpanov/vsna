@@ -26,7 +26,8 @@ set(CLIENT_DIR   ${SRC_DIR}/client)
 set(UTILS_SOURCES
     ${UTILS_DIR}/addr/addr.cpp
     ${UTILS_DIR}/config/config.cpp
-    ${UTILS_DIR}/logger/logger.cpp
+    ${UTILS_DIR}/logger/logger.h
+    ${UTILS_DIR}/helper/helper.h
 )
 set(SERVER_SOURCES
     ${SERVER_DIR}/server.cpp
@@ -69,8 +70,7 @@ else()
     message(FATAL_ERROR "-- Boost status: Not found")
 endif()
 
-# Utils : addr/config/logger sources, plus public headers
-# (${PROJECT_ROOT} makes <libs/*.hpp> visible, common/types has types.h & pch.h)
+# Utils
 add_library(utils STATIC ${UTILS_SOURCES})
 target_include_directories(utils PUBLIC
     ${PROJECT_ROOT}

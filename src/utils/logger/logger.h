@@ -1,34 +1,69 @@
 #pragma once
 
-#include <fstream>
-#include <string>
-#include <filesystem>
-#include <chrono>
-#include <ctime>
-#include <map>
+/*
+    usage examples:
+        logger::debug("Your message here");
+        logger::info("You can provide args like: {}, {}", arg1, arg2);
+    all levels / functions: debug, info, warn, error
+ */
+
+#include <print>
+#include <format>
+#include <string_view>
 #include <source_location>
-#include <iostream>
 
-namespace Logger
+namespace logger
 {
-    const std::string LOG_FILE{ "data/vsna.log" };
-
-    inline static std::ofstream file;
-    inline static bool _enabled;
-
     enum class Level
     {
+        DEBUG,
         INFO,
-        ERROR,
-        DEBUG
+        WARN,
+        ERROR
     };
 
-    void log(Level level, std::string message, const std::source_location location = std::source_location::current());
-    void logInfo(std::string message);
-    void logError(std::string message);
-    void logDebug(std::string message);
+    template <Level l, class... Args>
+    struct print {};
 
-    void setEnabled(bool enabled);
+    template <Level l, class... Args>
+    struct print<l, const char *, Args...>
+    {
+        print(const char *msg, Args && ...args, std::source_location loc = std::source_location::current())
+        {
 
-    constexpr std::string log_level_to_string(Level level);
+            auto levelString = "DEBUG";
+
+            if constexpr(l == Level::INFO)
+            {
+                levelString = "INFO";
+            }
+            else if constexpr(l == Level::WARN)
+            {
+                levelString = "WARN";
+            }
+            else if constexpr(l == Level::ERROR)
+            {
+                levelString = "ERROR";
+            }
+            std::println("[ {} ] {} : line {}  {}", levelString, loc.file_name(), loc.line(),
+                    std::vformat(msg, std::make_format_args(args...))
+                    );
+        }
+    };
+
+    // template deduction guide
+    template <Level l, class... Args>
+    print(Args ...) -> print<l, Args ...>; 
+
+    template <class ...Args>
+    using debug = print<Level::DEBUG, Args...>;
+
+    template <class ...Args>
+    using info = print<Level::INFO, Args...>;
+
+    template <class ...Args>
+    using warn = print<Level::WARN, Args...>;
+
+    template <class ...Args>
+    using error = print<Level::ERROR, Args...>;
 }
