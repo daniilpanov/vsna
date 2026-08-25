@@ -16,7 +16,7 @@ inline std::string trim(STRING_ARG s) {
   return s.substr(begin, end - begin + 1);
 }
 
-inline STRING_VECTOR splitArgs(STRING_ARG input)
+inline STRING_VECTOR split(STRING_ARG input)
 {
 	STRING_VECTOR args;
 	std::stringstream ss(input);
@@ -39,4 +39,14 @@ inline bool isValidIPv4(STRING_ARG ipString)
 	{
 		return false;
 	}
+}
+
+inline std::string join(ARG_VECTOR strings, STRING_ARG delimiter) {
+    if (strings.empty()) return "";
+    
+    std::string result = strings[0];
+    for (size_t i = 1; i < strings.size(); ++i) {
+        result += delimiter + strings[i];
+    }
+    return result;
 }

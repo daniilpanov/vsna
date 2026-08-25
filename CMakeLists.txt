@@ -79,7 +79,7 @@ target_include_directories(utils PUBLIC
     ${UTILS_DIR}/addr
     ${UTILS_DIR}/config
     ${UTILS_DIR}/logger
-    ${UTILS_DIR}/helpers
+    ${UTILS_DIR}/helper
 )
 target_link_libraries(utils PUBLIC Boost::headers ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} PRIVATE utils)

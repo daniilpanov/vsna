@@ -1,4 +1,6 @@
 #include "client.h"
+#include "helper.h"
+
 
 void Client::print() const
 {
@@ -31,4 +33,12 @@ void Client::connect(ARG_VECTOR args)
 	std::make_shared<ClientSession>(_io_context)
 	    ->run(addr.ip().c_str(), addr.port().c_str(), "Hello, World!");
 	_io_context.run();
+}
+
+void Client::sendMsg(ARG_VECTOR args)
+{
+	std::cout << "Sending message..." << std::endl;
+	std::string msg = join(args, " ");
+	std::cout << "Message: " << msg << std::endl;
+	std::cout << "Message length: " << msg.length() << std::endl;
 }

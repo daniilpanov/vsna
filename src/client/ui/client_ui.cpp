@@ -53,7 +53,7 @@ void ClientUI::CLIParse(int argc, char **argv)
 
 std::pair<std::string, STRING_VECTOR> ClientUI::parseArgs(STRING_ARG input)
 {
-	STRING_VECTOR args = splitArgs(input);
+	STRING_VECTOR args = split(input);
 	return { args[0], STRING_VECTOR(args.begin() + 1, args.end()) };
 }
 

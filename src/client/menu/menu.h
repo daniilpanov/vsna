@@ -123,3 +123,15 @@ class HelpCommand : public MenuItem {
 	{}
 	bool handle(ARG_VECTOR args) override;
 };
+
+class SendMessageCommand : public MenuItem {
+  public:
+	SendMessageCommand(Client& client, const CommandInfo& info)
+	    : MenuItem(client, info)
+	{}
+	bool handle(ARG_VECTOR args) override
+	{
+		_client.sendMsg(args);
+		return false;
+	};
+};

@@ -19,6 +19,7 @@ void CommandManager::initCommands()
 	addCommand<ConnectCommand>("connect", "Connect to the server", "[ip:port]");
 	addCommand<SendFilesCommand>("send_files", "Send file(s)", "[file | path]");
 	addCommand<DownloadCommand>("download", "Download file(s)", "[file | path]");
+	addCommand<SendMessageCommand>("send", "Send a message", "[message]");
 }
 
 bool CommandManager::execute(STRING_ARG name, STRING_VECTOR args)

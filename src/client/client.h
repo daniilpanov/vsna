@@ -28,6 +28,7 @@ class Client {
 	void myPath(ARG_VECTOR) const;
 	void sendFiles(ARG_VECTOR);
 	void download(ARG_VECTOR);
+	void sendMsg(ARG_VECTOR);
 
   private:
     Config _config;
