@@ -2,7 +2,6 @@
 #include <boost/asio/ip/address.hpp>
 #include <algorithm>
 #include <sstream>
-#include <string>
 
 #include "types.h"
 
@@ -16,16 +15,25 @@ inline std::string trim(STRING_ARG s) {
   return s.substr(begin, end - begin + 1);
 }
 
-inline STRING_VECTOR split(STRING_ARG input)
+inline STRING_VECTOR split(STRING_ARG input, STRING_ARG delimiter = " ")
 {
-	STRING_VECTOR args;
-	std::stringstream ss(input);
-	std::string token;
-	while (ss >> token)
-	{
-		args.push_back(trim(token));
-	}
-	return args;
+    STRING_VECTOR result;
+    if (delimiter.empty()) {
+        result.push_back(input);
+        return result;
+    }
+    
+    size_t start = 0;
+    size_t end = input.find(delimiter);
+    
+    while (end != std::string::npos) {
+        result.push_back(input.substr(start, end - start));
+        start = end + delimiter.length();
+        end = input.find(delimiter, start);
+    }
+    
+    result.push_back(input.substr(start));
+    return result;
 }
 
 inline bool isValidIPv4(STRING_ARG ipString)
@@ -41,7 +49,7 @@ inline bool isValidIPv4(STRING_ARG ipString)
 	}
 }
 
-inline std::string join(ARG_VECTOR strings, STRING_ARG delimiter) {
+inline std::string join(ARG_VECTOR strings, STRING_ARG delimiter = " ") {
     if (strings.empty()) return "";
     
     std::string result = strings[0];
