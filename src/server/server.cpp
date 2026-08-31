@@ -45,7 +45,7 @@ void Server::setup_acceptor()
 
 void Server::run()
 {
-    setup_acceptor();
+	setup_acceptor();
 	do_accept();
 	std::cout << "Server is running on " << _config.getAddr().toString() << std::endl;
 

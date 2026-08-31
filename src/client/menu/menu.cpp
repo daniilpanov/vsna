@@ -7,10 +7,7 @@ bool HelpCommand::handle(ARG_VECTOR args)
 	std::cout << "[=] Available commands:" << std::endl;
 	for (const auto& cmd : commands)
 	{
-		std::cout <<
-		"\t" << cmd.name <<
-		" " << cmd.usage <<
-		" - " << cmd.description << std::endl;
+		std::cout << "\t" << cmd.name << " " << cmd.usage << " - " << cmd.description << std::endl;
 	}
 	return false;
 }

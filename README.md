@@ -8,33 +8,35 @@ All dependencies are managed through `vcpkg`:
 - `nlohmann/json` - JSON parsing library.
 
 # Build
-Initialize the `vcpkg` submodule (first time only), then configure and build. CMake
-auto-bootstraps `vcpkg` and installs all dependencies (declared in `vcpkg.json`) during
-configure:
+Initialize the `vcpkg` submodule (first time only), then configure and build.
+Make automatically configure the project and init submodule `vcpkg`.
+CMake auto-bootstraps `vcpkg` and installs all dependencies (declared in `vcpkg.json`).
+See the commands:
 
 ```bash
-git submodule update --init vcpkg
-cmake --preset default     # vcpkg bootstrap + dependency install + configure
-cmake --build --preset default
+make configure     # vcpkg bootstrap + dependency install + configure
+make build         # build the targets
 ```
 
-`cmake --preset default` builds both `vsna_server` and `vsna_client` into `out/`. To build
-only the server or client, pass `-DBUILD_SERVER_EXE=OFF` / `-DBUILD_CLIENT_EXE=OFF` to the
-configure step.
+`make configure` calls `cmake --preset default` that builds both `vsna_server` and `vsna_client` into `out/`.
+To build only the server or client, pass `-DBUILD_SERVER_EXE=OFF` / `-DBUILD_CLIENT_EXE=OFF`
+to the `cmake --preset default` after `make configure`
 
 # To run
+Binaries land in `out/` (on Windows multi-config builds add `Debug\ ` subfolder).
+
 **Client**
 
 - With CLI flags:
 
 ```bash
-.\out\client\Debug\vsna_client.exe -i 127.0.0.1 -p 5555 -d \
+./out/vsna_client -i 127.0.0.1 -p 5555 -d
 ```
 
 - With config file:
 
 ```bash
-.\out\client\Debug\vsna_client.exe -c .\config\config.example.json
+./out/vsna_client -c ./config/config.example.json
 ```
 
 **Server**
@@ -42,13 +44,13 @@ configure step.
 - With CLI flags:
 
 ```bash
-.\out\server\Debug\vsna_server.exe -i 0.0.0.0 -p 5555 -d \
+./out/vsna_server -i 0.0.0.0 -p 5555 -d
 ```
 
 - With config file:
 
 ```bash
-.\out\server\Debug\vsna_server.exe -c .\config\config.example.json
+./out/vsna_server -c ./config/config.example.json
 ```
 
 **CLI Scheme**
@@ -56,7 +58,7 @@ configure step.
 |Short, Long name|Description|Default value|
 |---|---|---|
 | `-h`, `--help` | show help message |-|
-| `-p`, `--port <port>` | set port | 8080 |
+| `-p`, `--port <port>` | set port | 5555 |
 | `-i`, `--ip <ip>` | set client/server address | 0.0.0.0 |
 | `-d`, `--dir <path>` | set client/server path | <current directory> |
 | `-c`, `--config <path>` | set config file path | none |
@@ -65,7 +67,7 @@ configure step.
 ```
 vsna/
 ├── .clang-format              # правила форматирования кода
-├── Makefile                   # хелпер форматирования кода
+├── Makefile                   # хелпер форматирования и сборки (format/configure/build)
 ├── .gitignore
 ├── vcpkg.json                  # манифест зависимостей vcpkg (Boost, CLI11, nlohmann-json)
 ├── CMakeLists.txt             # корневой сценарий сборки (цели: vsna_server + vsna_client + utils/client/server libs)
@@ -98,6 +100,6 @@ vsna/
     └── utils/                 # утилиты общего назначения (цель utils.lib)
         ├── addr/              # Addr: ip:port, валидация, toString
         ├── config/            # Config: загрузка из json, getAddr/getPath
-        ├── helpers/helper.h   # inline-утилиты: trim, splitArgs, isValidIPv4
+        ├── helper/helper.h    # inline-утилиты: trim, splitArgs, isValidIPv4
         └── logger/            # Logger: файловый лог с уровнями
 ```

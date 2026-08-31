@@ -3,14 +3,9 @@ SOURCE_EXTENSIONS := cpp h
 EXCLUDED_DIRS := ./.git ./out ./libs ./vcpkg
 
 CLANG_FORMAT ?= clang-format
+CMAKE_BIN ?= cmake
 
-ifeq ($(OS),Windows_NT)
-    CMAKE_BIN := $(shell where cmake 2>nul | head -n 1)
-else
-    CMAKE_BIN := $(shell which cmake 2>/dev/null)
-endif
-
-.PHONY: format build
+.PHONY: format configure build
 .DEFAULT_GOAL := format
 
 list-format-files:
@@ -32,7 +27,9 @@ format:
 		${CLANG_FORMAT} -i $$files;\
 	fi
 
-build:
+configure:
 	git submodule init vcpkg
 	"$(CMAKE_BIN)" --preset default
+
+build:
 	"$(CMAKE_BIN)" --build --preset default

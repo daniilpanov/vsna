@@ -32,6 +32,6 @@ class Client {
 	void disconnect();
 
   private:
-    Config _config;
+	Config _config;
 	boost::asio::io_context _io_context;
 };

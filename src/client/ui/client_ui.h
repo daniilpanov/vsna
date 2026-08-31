@@ -15,12 +15,11 @@
 class ClientUI {
 	Client _client;
 	CommandManager _commandManager;
-	
 
   public:
 	ClientUI() : _commandManager(_client)
 	{}
 	void CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);
-	std::pair<std::string, std::vector<std::string>> parseArgs(STRING_ARG input);
+	std::pair<std::string, std::vector<std::string> > parseArgs(STRING_ARG input);
 };

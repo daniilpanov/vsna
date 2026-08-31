@@ -62,8 +62,6 @@ void ClientUI::run(int argc, char **argv)
 	this->CLIParse(argc, argv);
 	_commandManager.initCommands();
 
-	//_tuiApp.run();
-	
 	_client.print();
 
 	std::string input;
