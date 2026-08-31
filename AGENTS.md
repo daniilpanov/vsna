@@ -9,20 +9,23 @@ VSNA — a C++23 CLI project (WebSocket-based data exchange over VLAN). Early-st
 ```bash
 git submodule update --init vcpkg   # first time only in a fresh clone
 ./init_modules.sh                    # bootstraps vcpkg + installs Boost (no clone/wget anymore)
-./build.sh --server                  # or --client; no flag = both
+cmake --preset default               # or: cmake -B out; configures both targets
+cmake --build --preset default      # builds vsna_server AND vsna_client together
 make                                 # runs clang-format on all .cpp/.h (excluding .git, out, libs)
 ```
 
-- Build outputs go to `out/server/` or `out/client/`.
-- `vcpkg` is a git submodule. `build.sh`/`build.bat` auto-init it if missing; `init_modules.sh` only bootstraps vcpkg and installs Boost.
+- Build outputs go to `out/` (`vsna_server`, `vsna_client`).
+- `vcpkg` is a git submodule. `init_modules.sh` only bootstraps vcpkg and installs Boost.
+- CMake is the entry point — there is **no build.sh/build.bat**.
 - Requires C++23 (`<print>`, `<format>`, `<source_location>`).
-- `SERVER` and `CLIENT` CMake options are mutually exclusive; the build script handles this.
+- `SERVER`/`CLIENT` were merged into `BUILD_SERVER_EXE` / `BUILD_CLIENT_EXE` CMake options (both default `ON`, built in one configure). `-DBUILD_SERVER_EXE=OFF` builds client only, and vice versa.
+- To clean: `rm -rf out` (or `cmake --build --preset default --target clean`).
 - No tests, no CI, no linter beyond `clang-format`.
 
 ## Architecture
 
-- **Single entry point** (`src/main.cpp`): compile-time `#if BUILD_SERVER` / `#if BUILD_CLIENT` selects the role.
-- Three static libs: `utils` (always), `server` or `client` (mutually exclusive).
+- **Shared entry point** (`src/main.cpp`): compile-time `#if BUILD_SERVER` / `#if BUILD_CLIENT` selects the role; it is compiled into two executables (`vsna_server`, `vsna_client`).
+- Three static libs: `utils` (always), plus `server` and `client` (built only when the matching executable is enabled).
 - `src/common/types/pch.h` — precompiled header with Boost.Beast/Asio includes and common `using` declarations.
 - `src/utils/helper/helper.h` — inline helpers (trim, split, isValidIPv4, join) + constants `max_length` (1024) and `max_threads` (4).
 - `src/utils/logger/logger.h` — C++23 `std::print`-based logging.
