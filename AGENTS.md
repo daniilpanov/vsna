@@ -7,10 +7,9 @@ VSNA — a C++23 CLI project (WebSocket-based data exchange over VLAN). Early-st
 ## Build
 
 ```bash
-git submodule update --init vcpkg   # first time only in a fresh clone
-cmake --preset default               # or: cmake -B out; bootstraps vcpkg + installs deps + configures both targets
-cmake --build --preset default      # builds vsna_server AND vsna_client together
-make                                 # runs clang-format on all .cpp/.h (excluding .git, out)
+make configure     # configures all targets
+make build         # configures and builds all targets
+make format        # runs clang-format on all .cpp/.h
 ```
 
 - Build outputs go to `out/` (`vsna_server`, `vsna_client`), deps via manifest into `out/vcpkg_installed/`.
@@ -39,6 +38,5 @@ make                                 # runs clang-format on all .cpp/.h (excludi
 
 ## Gotchas
 
-- README has stale paths (e.g. `src/utils/helpers/` vs actual `src/utils/helper/`) and wrong default port claim (code defaults to 5555, README says 8080).
 - `getpid()` in `server.cpp` is POSIX-only.
 - No `#pragma once` in some headers (e.g. server `session.h`, client `session.h`).
