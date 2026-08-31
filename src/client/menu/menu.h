@@ -8,7 +8,8 @@
 #include "config.h"
 #include "types.h"
 
-struct CommandInfo {
+struct CommandInfo
+{
 	std::string name;
 	std::string description;
 	std::string usage{ "" };
@@ -19,19 +20,17 @@ class MenuItem {
 	Client& _client;
 
   public:
-      const CommandInfo _info;
+	const CommandInfo _info;
 
 	virtual ~MenuItem() = default;
-	MenuItem(Client& client, const CommandInfo& info) 
-	    : _client(client), _info(info)
+	MenuItem(Client& client, const CommandInfo& info) : _client(client), _info(info)
 	{}
 	virtual bool handle(ARG_VECTOR) = 0;
 };
 
 class ConnectCommand : public MenuItem {
   public:
-	ConnectCommand(Client& client, const CommandInfo& info) 
-	    : MenuItem(client, info)
+	ConnectCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
 	bool handle(ARG_VECTOR args) override
 	{
@@ -42,8 +41,7 @@ class ConnectCommand : public MenuItem {
 
 class ShowPathCommand : public MenuItem {
   public:
-	ShowPathCommand(Client& client, const CommandInfo& info)
-	    : MenuItem(client, info)
+	ShowPathCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
 	bool handle(ARG_VECTOR args) override
 	{
@@ -54,8 +52,7 @@ class ShowPathCommand : public MenuItem {
 
 class MyPathCommand : public MenuItem {
   public:
-	MyPathCommand(Client& client, const CommandInfo& info)
-	    : MenuItem(client, info)
+	MyPathCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
 	bool handle(ARG_VECTOR args) override
 	{
@@ -66,8 +63,7 @@ class MyPathCommand : public MenuItem {
 
 class SendFilesCommand : public MenuItem {
   public:
-	SendFilesCommand(Client& client, const CommandInfo& info)
-	    : MenuItem(client, info)
+	SendFilesCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
 	bool handle(ARG_VECTOR args) override
 	{
@@ -78,8 +74,7 @@ class SendFilesCommand : public MenuItem {
 
 class DownloadCommand : public MenuItem {
   public:
-	DownloadCommand(Client& client, const CommandInfo& info)
-	    : MenuItem(client, info)
+	DownloadCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
 	bool handle(ARG_VECTOR args) override
 	{
@@ -90,8 +85,7 @@ class DownloadCommand : public MenuItem {
 
 class PrintCommand : public MenuItem {
   public:
-	PrintCommand(Client& client, const CommandInfo& info)
-	    : MenuItem(client, info)
+	PrintCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
 	bool handle(ARG_VECTOR args) override
 	{
@@ -102,8 +96,7 @@ class PrintCommand : public MenuItem {
 
 class ExitCommand : public MenuItem {
   public:
-	ExitCommand(Client& client, const CommandInfo& info)
-	    : MenuItem(client, info)
+	ExitCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
 	bool handle(ARG_VECTOR args) override
 	{
@@ -126,8 +119,7 @@ class HelpCommand : public MenuItem {
 
 class SendMessageCommand : public MenuItem {
   public:
-	SendMessageCommand(Client& client, const CommandInfo& info)
-	    : MenuItem(client, info)
+	SendMessageCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
 	bool handle(ARG_VECTOR args) override
 	{

@@ -1,7 +1,6 @@
 #include "client.h"
 #include "helper.h"
 
-
 void Client::print() const
 {
 	std::cout << _config.toString() << std::endl;
@@ -29,22 +28,27 @@ void Client::download(ARG_VECTOR args)
 
 void Client::connect(ARG_VECTOR args)
 {
-    Addr addr;
-    if (args.empty()) {
-        addr = _config.getAddr();
-    } else {
-        if (args.size() != 1) {
-            std::cerr << "Usage: connect [ip:port]" << std::endl;
-            return;
-        }
-        auto tempVec = split(args[0], ":");
-        if (tempVec.size() != 2) {
-            std::cerr << "Usage: connect [ip:port]" << std::endl;
-            return;
-        }
-        addr = Addr(tempVec[0], tempVec[1]);
-    }
-	
+	Addr addr;
+	if (args.empty())
+	{
+		addr = _config.getAddr();
+	}
+	else
+	{
+		if (args.size() != 1)
+		{
+			std::cerr << "Usage: connect [ip:port]" << std::endl;
+			return;
+		}
+		auto tempVec = split(args[0], ":");
+		if (tempVec.size() != 2)
+		{
+			std::cerr << "Usage: connect [ip:port]" << std::endl;
+			return;
+		}
+		addr = Addr(tempVec[0], tempVec[1]);
+	}
+
 	std::make_shared<ClientSession>(_io_context)
 	    ->run(addr.ip().c_str(), addr.port().c_str(), "Hello, World!");
 	_io_context.run();

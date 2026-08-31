@@ -1,11 +1,10 @@
 #include "command_manager.h"
 
-
 template <typename T, typename... Args>
-void CommandManager::addCommand(STRING_ARG name, STRING_ARG desc, STRING_ARG usage, Args&&... args)
+void CommandManager::addCommand(STRING_ARG name, STRING_ARG desc, STRING_ARG usage, Args&&...args)
 {
-    _commands[name] = std::make_unique<T>(
-        _client, CommandInfo{ name, desc, usage }, std::forward<Args>(args)...);
+	_commands[name] = std::make_unique<T>(_client, CommandInfo{ name, desc, usage },
+	                                      std::forward<Args>(args)...);
 }
 
 // Write commands in lower case!

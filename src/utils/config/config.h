@@ -30,7 +30,7 @@ class Config {
 	}
 
 	std::string toString() const;
-	
+
   private:
 	Addr _addr;
 	std::string _path;
