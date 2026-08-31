@@ -1,16 +1,17 @@
-CLANG_FORMAT ?= clang-format
-.DEFAULT_GOAL := format
-
 ROOT_DIR := .
-SOURCE_EXTENSIONS := \
-	cpp \
-	h
-EXCLUDED_DIRS := \
-	./.git \
-	./out \
-	./libs
+SOURCE_EXTENSIONS := cpp h
+EXCLUDED_DIRS := ./.git ./out ./libs ./vcpkg
 
-.PHONY: list-format-files format
+CLANG_FORMAT ?= clang-format
+
+ifeq ($(OS),Windows_NT)
+    CMAKE_BIN := $(shell where cmake 2>nul | head -n 1)
+else
+    CMAKE_BIN := $(shell which cmake 2>/dev/null)
+endif
+
+.PHONY: format build
+.DEFAULT_GOAL := format
 
 list-format-files:
 	@find "$(ROOT_DIR)" -type f \
@@ -30,3 +31,8 @@ format:
 		echo "$$files"; \
 		${CLANG_FORMAT} -i $$files;\
 	fi
+
+build:
+	git submodule init vcpkg
+	"$(CMAKE_BIN)" --preset default
+	"$(CMAKE_BIN)" --build --preset default

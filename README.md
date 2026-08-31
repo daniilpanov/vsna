@@ -2,22 +2,21 @@
 **Virtual Storage and Network Access** is open-source CLI project, implemented on C++, to exchange data between devices on a _VLAN_.
 
 # Dependencies
+All dependencies are managed through `vcpkg`:
 - `boost` - asio + beast (_websocket_);
 - `CLI11` - command line interface parser;
-- `nlohmann/json` - JSON parsing library;
-- `cpptui` - text based user interface library.
+- `nlohmann/json` - JSON parsing library.
 
 # Build
 Initialize the `vcpkg` submodule (first time only), then configure and build. CMake
-auto-bootstraps `vcpkg` and installs Boost (declared in `vcpkg.json`) during configure:
+auto-bootstraps `vcpkg` and installs all dependencies (declared in `vcpkg.json`) during
+configure:
 
 ```bash
 git submodule update --init vcpkg
-cmake --preset default     # vcpkg bootstrap + Boost install + configure
+cmake --preset default     # vcpkg bootstrap + dependency install + configure
 cmake --build --preset default
 ```
-
-The header-only libraries (CLI11, nlohmann/json, cpptui) are already committed in `libs/`.
 
 `cmake --preset default` builds both `vsna_server` and `vsna_client` into `out/`. To build
 only the server or client, pass `-DBUILD_SERVER_EXE=OFF` / `-DBUILD_CLIENT_EXE=OFF` to the
@@ -68,18 +67,13 @@ vsna/
 ├── .clang-format              # правила форматирования кода
 ├── Makefile                   # хелпер форматирования кода
 ├── .gitignore
-├── vcpkg.json                  # манифест зависимостей vcpkg (установка Boost)
+├── vcpkg.json                  # манифест зависимостей vcpkg (Boost, CLI11, nlohmann-json)
 ├── CMakeLists.txt             # корневой сценарий сборки (цели: vsna_server + vsna_client + utils/client/server libs)
 ├── CMakePresets.json          # пресеты сборки (default = обе цели через vcpkg)
 ├── README.md
 │
 ├── config/                    # конфиги приложения
 │   └── config.example.json    # шаблон для новых развёртываний
-│
-├── libs/                      # header-only сторонние библиотеки
-│   ├── CLI11.hpp              # парсер аргументов командной строки
-│   ├── cpptui.hpp             # TUI-фреймворк
-│   └── json.hpp               # парсинг config.json
 │
 └── src/                       # весь исходный код
     ├── main.cpp               # точка входа; BUILD_SERVER/BUILD_CLIENT выбирают роль
@@ -88,8 +82,7 @@ vsna/
     │   ├── client.{h,cpp}     # Client: io_context, connect/sendFiles/download (stub'ы)
     │   ├── session/           # исходящий WebSocket-сеанс (ClientSession, пока one-shot)
     │   ├── ui/
-    │   │   ├── client_ui.*    # ClientUI: CLI11-парсинг, REPL-цикл, владеет CommandManager
-    │   │   └── tui.*          # демо-TUI на cpptui (в сборку не входит, ждёт адаптации)
+    │   │   └── client_ui.*    # ClientUI: CLI11-парсинг, REPL-цикл, владеет CommandManager
     │   ├── menu/              # MenuItem-иерархия: классы-команды (connect, help, exit...)
     │   └── com_manager/       # CommandManager: реестр и вызов команд
     │

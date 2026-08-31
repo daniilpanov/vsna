@@ -29,6 +29,7 @@ set(BOOST_REQUIRED_COMPONENTS
 )
 find_package(Boost REQUIRED COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
 find_package(Threads REQUIRED)
+find_package(CLI11 CONFIG REQUIRED)
 
 if (Boost_FOUND)
     if (WIN32)
@@ -45,7 +46,6 @@ add_library(utils STATIC ${SRC_DIR}/utils/addr/addr.cpp
                           ${SRC_DIR}/utils/logger/logger.h
                           ${SRC_DIR}/utils/helper/helper.h)
 target_include_directories(utils PUBLIC
-    ${PROJECT_ROOT}
     ${SRC_DIR}/common/types
     ${UTILS_DIR}
     ${UTILS_DIR}/addr
@@ -62,7 +62,7 @@ function(add_vsna_binary kind)
         add_library(server STATIC ${SERVER_DIR}/server.cpp
                                   ${SERVER_DIR}/server_cli.cpp
                                   ${SERVER_DIR}/session.cpp)
-        target_link_libraries(server PUBLIC utils)
+        target_link_libraries(server PUBLIC utils CLI11::CLI11)
         target_include_directories(server PUBLIC ${SERVER_DIR})
 
         add_executable(vsna_server ${SRC_DIR}/main.cpp)
@@ -76,7 +76,7 @@ function(add_vsna_binary kind)
                                   ${CLIENT_DIR}/ui/client_ui.cpp
                                   ${CLIENT_DIR}/menu/menu.cpp
                                   ${CLIENT_DIR}/com_manager/command_manager.cpp)
-        target_link_libraries(client PUBLIC utils)
+        target_link_libraries(client PUBLIC utils CLI11::CLI11)
         target_include_directories(client PUBLIC
             ${CLIENT_DIR}
             ${CLIENT_DIR}/ui
