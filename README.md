@@ -4,8 +4,7 @@
 # Dependencies
 - `boost` - asio + beast (_websocket_);
 - `CLI11` - command line interface parser;
-- `nlohmann/json` - JSON parsing library;
-- `cpptui` - text based user interface library.
+- `nlohmann/json` - JSON parsing library.
 
 # Build
 Initialize the `vcpkg` submodule (first time only), then configure and build. CMake
@@ -17,7 +16,7 @@ cmake --preset default     # vcpkg bootstrap + Boost install + configure
 cmake --build --preset default
 ```
 
-The header-only libraries (CLI11, nlohmann/json, cpptui) are already committed in `libs/`.
+The header-only libraries (CLI11, nlohmann/json) are already committed in `libs/`.
 
 `cmake --preset default` builds both `vsna_server` and `vsna_client` into `out/`. To build
 only the server or client, pass `-DBUILD_SERVER_EXE=OFF` / `-DBUILD_CLIENT_EXE=OFF` to the
@@ -78,7 +77,6 @@ vsna/
 │
 ├── libs/                      # header-only сторонние библиотеки
 │   ├── CLI11.hpp              # парсер аргументов командной строки
-│   ├── cpptui.hpp             # TUI-фреймворк
 │   └── json.hpp               # парсинг config.json
 │
 └── src/                       # весь исходный код
@@ -88,8 +86,7 @@ vsna/
     │   ├── client.{h,cpp}     # Client: io_context, connect/sendFiles/download (stub'ы)
     │   ├── session/           # исходящий WebSocket-сеанс (ClientSession, пока one-shot)
     │   ├── ui/
-    │   │   ├── client_ui.*    # ClientUI: CLI11-парсинг, REPL-цикл, владеет CommandManager
-    │   │   └── tui.*          # демо-TUI на cpptui (в сборку не входит, ждёт адаптации)
+    │   │   └── client_ui.*    # ClientUI: CLI11-парсинг, REPL-цикл, владеет CommandManager
     │   ├── menu/              # MenuItem-иерархия: классы-команды (connect, help, exit...)
     │   └── com_manager/       # CommandManager: реестр и вызов команд
     │

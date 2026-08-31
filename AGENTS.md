@@ -34,12 +34,11 @@ make                                 # runs clang-format on all .cpp/.h (excludi
 - Commands must be written in **lowercase** (enforced in `command_manager.cpp`).
 - Console messages use prefix patterns: `[~]` info, `[=]` display, `[!]` error.
 - Error handling: throw `std::invalid_argument` / `std::runtime_error` with `[!]`-prefixed messages.
-- Header-only vendored libs are committed in `libs/` (CLI11, nlohmann/json, cpptui) and included as `<libs/CLI11.hpp>`, `<libs/json.hpp>`, `<libs/cpptui.hpp>`.
+- Header-only vendored libs are committed in `libs/` (CLI11, nlohmann/json) and included as `<libs/CLI11.hpp>`, `<libs/json.hpp>`.
 - `.clang-format` is GNU-based, 4-space indent, `ColumnLimit 100`, `SortIncludes: false`.
 
 ## Gotchas
 
 - README has stale paths (e.g. `src/utils/helpers/` vs actual `src/utils/helper/`) and wrong default port claim (code defaults to 5555, README says 8080).
-- `src/client/ui/tui.{h,cpp}` references a missing `invoker.h` — dead code, not in the CMake build.
 - `getpid()` in `server.cpp` is POSIX-only.
 - No `#pragma once` in some headers (e.g. server `session.h`, client `session.h`).
