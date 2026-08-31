@@ -42,8 +42,16 @@ make build-native         # cmake --build --preset native
 ## Architecture
 
 - **Shared entry point** (`src/main.cpp`): compile-time `#if BUILD_SERVER` / `#if BUILD_CLIENT` selects the role; it is compiled into two executables (`vsna_server`, `vsna_client`).
+- `src/` contains only two folders — `Core/` and `UI/` — plus `main.cpp`.
 - Three static libs: `utils` (always), plus `server` and `client` (built only when the matching executable is enabled).
-- `src/common/types/pch.h` — precompiled header with Boost.Beast/Asio includes and common `using` declarations.
+- **Core/** — business logic, no UI dependencies:
+  - `Core/common/types/pch.h` — precompiled header with Boost.Beast/Asio includes and common `using` declarations.
+  - `Core/utils/` — addr, config, helper, logger.
+  - `Core/server/` — `Server` class and `ServerSession` (WebSocket handling).
+  - `Core/client/` — `Client` class and `ClientSession` (WebSocket handling).
+- **UI/** — presentation layer, calls only Core methods:
+  - `UI/server/` — `ServerCLI` (CLI arg parsing, server startup).
+  - `UI/client/` — `ClientUI` (REPL loop), `CommandManager` (command dispatch), `menu/` (command definitions).
 - `src/utils/helper/helper.h` — inline helpers (trim, split, isValidIPv4, join) + constants `max_length` (1024) and `max_threads` (4).
 - `src/utils/logger/logger.h` — C++23 `std::print`-based logging.
 
@@ -57,5 +65,5 @@ make build-native         # cmake --build --preset native
 
 ## Gotchas
 
-- `getpid()` in `server.cpp` is POSIX-only.
-- No `#pragma once` in some headers (e.g. server `session.h`, client `session.h`).
+- `getpid()` in `Core/server/server.cpp` is POSIX-only.
+- No `#pragma once` in some headers (e.g. Core server `session.h`, Core client `session.h`).

@@ -17,9 +17,8 @@ option(BUILD_CLIENT_EXE "Build client binary" ON)
 # Paths
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(SRC_DIR      ${PROJECT_ROOT}/src)
-set(UTILS_DIR    ${SRC_DIR}/utils)
-set(SERVER_DIR   ${SRC_DIR}/server)
-set(CLIENT_DIR   ${SRC_DIR}/client)
+set(CORE_DIR     ${SRC_DIR}/Core)
+set(UI_DIR       ${SRC_DIR}/UI)
 
 # Boost
 # VSNA uses Boost header-only libraries (Asio, Beast, system headers),
@@ -40,17 +39,17 @@ else()
 endif()
 
 # Utils (always)
-add_library(utils STATIC ${SRC_DIR}/utils/addr/addr.cpp
-                          ${SRC_DIR}/utils/config/config.cpp
-                          ${SRC_DIR}/utils/logger/logger.h
-                          ${SRC_DIR}/utils/helper/helper.h)
+add_library(utils STATIC ${CORE_DIR}/utils/addr/addr.cpp
+                          ${CORE_DIR}/utils/config/config.cpp
+                          ${CORE_DIR}/utils/logger/logger.h
+                          ${CORE_DIR}/utils/helper/helper.h)
 target_include_directories(utils PUBLIC
-    ${SRC_DIR}/common/types
-    ${UTILS_DIR}
-    ${UTILS_DIR}/addr
-    ${UTILS_DIR}/config
-    ${UTILS_DIR}/logger
-    ${UTILS_DIR}/helper
+    ${CORE_DIR}/common/types
+    ${CORE_DIR}/utils
+    ${CORE_DIR}/utils/addr
+    ${CORE_DIR}/utils/config
+    ${CORE_DIR}/utils/logger
+    ${CORE_DIR}/utils/helper
 )
 target_include_directories(utils PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(utils PUBLIC Boost::headers)
@@ -58,36 +57,38 @@ target_link_libraries(utils PUBLIC Boost::headers)
 # Helper to define a binary (server or client)
 function(add_vsna_binary kind)
     if(kind STREQUAL "server")
-        add_library(server STATIC ${SERVER_DIR}/server.cpp
-                                  ${SERVER_DIR}/server_cli.cpp
-                                  ${SERVER_DIR}/session.cpp)
+        add_library(server STATIC ${CORE_DIR}/server/server.cpp
+                                  ${UI_DIR}/server/server_cli.cpp
+                                  ${CORE_DIR}/server/session.cpp)
         target_link_libraries(server PUBLIC utils CLI11::CLI11)
-        target_include_directories(server PUBLIC ${SERVER_DIR})
+        target_include_directories(server PUBLIC
+            ${CORE_DIR}/server
+            ${UI_DIR}/server)
 
         add_executable(vsna_server ${SRC_DIR}/main.cpp)
         set_target_properties(vsna_server PROPERTIES OUTPUT_NAME vsna_server)
         target_compile_definitions(vsna_server PRIVATE BUILD_SERVER=1)
         target_link_libraries(vsna_server PRIVATE server utils)
-        target_include_directories(vsna_server PRIVATE ${SERVER_DIR})
+        target_include_directories(vsna_server PRIVATE ${UI_DIR}/server)
     else()
-        add_library(client STATIC ${CLIENT_DIR}/client.cpp
-                                  ${CLIENT_DIR}/session/session.cpp
-                                  ${CLIENT_DIR}/ui/client_ui.cpp
-                                  ${CLIENT_DIR}/menu/menu.cpp
-                                  ${CLIENT_DIR}/com_manager/command_manager.cpp)
+        add_library(client STATIC ${CORE_DIR}/client/client.cpp
+                                  ${CORE_DIR}/client/session/session.cpp
+                                  ${UI_DIR}/client/client_ui.cpp
+                                  ${UI_DIR}/client/menu/menu.cpp
+                                  ${UI_DIR}/client/com_manager/command_manager.cpp)
         target_link_libraries(client PUBLIC utils CLI11::CLI11)
         target_include_directories(client PUBLIC
-            ${CLIENT_DIR}
-            ${CLIENT_DIR}/ui
-            ${CLIENT_DIR}/menu
-            ${CLIENT_DIR}/com_manager
-            ${CLIENT_DIR}/session)
+            ${CORE_DIR}/client
+            ${CORE_DIR}/client/session
+            ${UI_DIR}/client
+            ${UI_DIR}/client/menu
+            ${UI_DIR}/client/com_manager)
 
         add_executable(vsna_client ${SRC_DIR}/main.cpp)
         set_target_properties(vsna_client PROPERTIES OUTPUT_NAME vsna_client)
         target_compile_definitions(vsna_client PRIVATE BUILD_CLIENT=1)
         target_link_libraries(vsna_client PRIVATE client utils)
-        target_include_directories(vsna_client PRIVATE ${CLIENT_DIR})
+        target_include_directories(vsna_client PRIVATE ${UI_DIR}/client)
     endif()
 endfunction()
 

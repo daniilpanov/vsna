@@ -107,25 +107,30 @@ vsna/
 └── src/                       # весь исходный код
     ├── main.cpp               # точка входа; BUILD_SERVER/BUILD_CLIENT выбирают роль
     │
-    ├── client/                # КЛИЕНТСКАЯ ЧАСТЬ
-    │   ├── client.{h,cpp}     # Client: io_context, connect/sendFiles/download (stub'ы)
-    │   ├── session/           # исходящий WebSocket-сеанс (ClientSession, пока one-shot)
-    │   ├── ui/
-    │   │   └── client_ui.*    # ClientUI: CLI11-парсинг, REPL-цикл, владеет CommandManager
-    │   ├── menu/              # MenuItem-иерархия: классы-команды (connect, help, exit...)
-    │   └── com_manager/       # CommandManager: реестр и вызов команд
+    ├── Core/                  # БИЗНЕС-ЛОГИКА (без зависимостей от UI)
+    │   ├── common/types/      # общие типы
+    │   │   └── pch.h          # precompiled header: boost/beast алиасы, fail()
+    │   │
+    │   ├── utils/             # утилиты общего назначения (цель utils.lib)
+    │   │   ├── addr/          # Addr: ip:port, валидация, toString
+    │   │   ├── config/        # Config: загрузка из json, getAddr/getPath
+    │   │   ├── helper/        # inline-утилиты: trim, splitArgs, isValidIPv4
+    │   │   └── logger/        # C++23 std::print-based logging
+    │   │
+    │   ├── server/            # серверная логика
+    │   │   ├── server.*       # Server: acceptor + пул потоков, цикл приёма соединений
+    │   │   └── session.*      # ServerSession: WS-сессия клиента (read => echo => read)
+    │   │
+    │   └── client/            # клиентская логика
+    │       ├── client.*       # Client: io_context, connect/sendFiles/download
+    │       └── session/       # ClientSession: исходящий WebSocket-сеанс
     │
-    ├── server/                # СЕРВЕРНАЯ ЧАСТЬ (цель server.lib)
-    │   ├── server_cli.*       # ServerCLI: CLI11-парсинг, владеет Server
-    │   ├── server.*           # Server: acceptor + пул потоков, цикл приёма соединений
-    │   └── session.*          # ServerSession: WS-сессия клиента (read => echo => read)
-    │
-    ├── common/types/          # общие типы
-    │   └── pch.h              # precompiled header: boost/beast алиасы, fail()
-    │
-    └── utils/                 # утилиты общего назначения (цель utils.lib)
-        ├── addr/              # Addr: ip:port, валидация, toString
-        ├── config/            # Config: загрузка из json, getAddr/getPath
-        ├── helper/helper.h    # inline-утилиты: trim, splitArgs, isValidIPv4
-        └── logger/            # Logger: файловый лог с уровнями
+    └── UI/                    # ПРЕЗЕНТАЦИОННЫЙ СЛОЙ (вызывает методы Core)
+        ├── server/
+        │   └── server_cli.*   # ServerCLI: CLI11-парсинг, запуск сервера
+        │
+        └── client/
+            ├── client_ui.*    # ClientUI: CLI11-парсинг, REPL-цикл
+            ├── menu/          # MenuItem-иерархия: классы-команды (connect, help, exit...)
+            └── com_manager/   # CommandManager: реестр и вызов команд
 ```
