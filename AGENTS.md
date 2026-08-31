@@ -8,17 +8,16 @@ VSNA — a C++23 CLI project (WebSocket-based data exchange over VLAN). Early-st
 
 ```bash
 git submodule update --init vcpkg   # first time only in a fresh clone
-./init_modules.sh                    # bootstraps vcpkg + installs Boost (no clone/wget anymore)
-cmake --preset default               # or: cmake -B out; configures both targets
+cmake --preset default               # or: cmake -B out; bootstraps vcpkg + installs Boost + configures both targets
 cmake --build --preset default      # builds vsna_server AND vsna_client together
 make                                 # runs clang-format on all .cpp/.h (excluding .git, out, libs)
 ```
 
-- Build outputs go to `out/` (`vsna_server`, `vsna_client`).
-- `vcpkg` is a git submodule. `init_modules.sh` only bootstraps vcpkg and installs Boost.
-- CMake is the entry point — there is **no build.sh/build.bat**.
+- Build outputs go to `out/` (`vsna_server`, `vsna_client`), Boost via manifest into `out/vcpkg_installed/`.
+- `vcpkg` is a git submodule; there is **no init_modules script**. The vcpkg CMake toolchain (referenced in `CMakePresets.json`) auto-bootstraps vcpkg and auto-installs Boost declared in `vcpkg.json` during configure.
+- CMake is the entry point — there is **no build.sh/build.bat either**.
 - Requires C++23 (`<print>`, `<format>`, `<source_location>`).
-- `SERVER`/`CLIENT` were merged into `BUILD_SERVER_EXE` / `BUILD_CLIENT_EXE` CMake options (both default `ON`, built in one configure). `-DBUILD_SERVER_EXE=OFF` builds client only, and vice versa.
+- `BUILD_SERVER_EXE` / `BUILD_CLIENT_EXE` CMake options (both default `ON`, built in one configure). `-DBUILD_SERVER_EXE=OFF` builds client only, and vice versa.
 - To clean: `rm -rf out` (or `cmake --build --preset default --target clean`).
 - No tests, no CI, no linter beyond `clang-format`.
 
