@@ -1,17 +1,26 @@
 #pragma once
+#include <cstdint>
+#include <deque>
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <unordered_map>
 
+#include "message.h"
 #include "pch.h"
 
 class Node;
 
-// A symmetric peer session. The same class handles both directions of the
-// connection: when created from an accepted socket it performs the server
-// handshake, when created through dial() it performs the client handshake.
-// After the handshake both roles run the exact same read/write loop.
+// A persistent symmetric peer session. A single connection stays alive across
+// many messages and multiplexes several transactions at once, distinguished by
+// their tx_id: incoming messages are routed to the handler registered for that
+// tx_id (or to a default handler when none is registered). Writes are queued so
+// send() is safe to call from any thread.
 class NodeSession : public std::enable_shared_from_this<NodeSession> {
   public:
+	using Handler = std::function<void(const Message&)>;
+
 	explicit NodeSession(Node& node, boost::asio::io_context& ioc);
 
 	// Server direction: a socket accepted by the acceptor.
@@ -19,6 +28,16 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 
 	// Client direction: dial a remote peer.
 	void dial(const std::string& host, const std::string& port);
+
+	// Enqueue a message to be serialized and written on this connection.
+	void send(const Message& msg);
+
+	// Register a handler for a specific transaction id. Messages carrying that
+	// tx_id are delivered to it.
+	void onTx(uint64_t tx_id, Handler handler);
+
+	// Register a default handler for messages whose tx_id has no handler.
+	void onMessage(Handler handler);
 
   private:
 	Node& _node;
@@ -29,7 +48,17 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	std::string _host;
 	std::string _port;
 
+	std::mutex _write_mutex;
+	std::deque<Message> _write_queue;
+	bool _writing{ false };
+	std::string _outgoing;
+
+	std::unordered_map<uint64_t, Handler> _handlers;
+	Handler _default_handler;
+
 	void do_read();
+	void do_write_next();
+	void route(const Message& msg);
 	void on_accept(beast::error_code ec);
 	void on_resolve(beast::error_code ec, tcp::resolver::results_type results);
 	void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep);
