@@ -26,8 +26,8 @@ cmd_build() {
     mkdir -p $BUILD_DIR
     if [ "$USE_VCPKG" = "true" ]; then
       if [ ! -d "$VCPKG_DIR" ]; then
-        echo "-- Error: vcpkg not found. Run ./init_modules.sh"
-        exit 1
+        echo "-- vcpkg not found, initializing submodule..."
+        git submodule update --init vcpkg
       fi
     else
       echo "-- Looking in local packages"

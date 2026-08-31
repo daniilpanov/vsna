@@ -30,8 +30,12 @@ if not exist "%BUILD_DIR%" md "%BUILD_DIR%"
 
 if "%USE_VCPKG%"=="true" (
     if not exist "%VCPKG_DIR%" (
-        echo -- Error: vcpkg not found. Run ./init_modules.sh
-        exit /b 1
+        echo -- vcpkg not found, initializing submodule...
+        git submodule update --init vcpkg
+        if errorlevel 1 (
+            echo -- Failed to initialize vcpkg submodule
+            exit /b 1
+        )
     )
 ) else (
     echo -- Looking in local packages

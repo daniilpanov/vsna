@@ -7,12 +7,14 @@ VSNA — a C++23 CLI project (WebSocket-based data exchange over VLAN). Early-st
 ## Build
 
 ```bash
-./init_modules.sh          # first time only: clones vcpkg, installs Boost, downloads header libs to libs/
-./build.sh --server        # or --client; no flag = both
-make                       # runs clang-format on all .cpp/.h (excluding .git, out, libs)
+git submodule update --init vcpkg   # first time only in a fresh clone
+./init_modules.sh                    # bootstraps vcpkg + installs Boost (no clone/wget anymore)
+./build.sh --server                  # or --client; no flag = both
+make                                 # runs clang-format on all .cpp/.h (excluding .git, out, libs)
 ```
 
 - Build outputs go to `out/server/` or `out/client/`.
+- `vcpkg` is a git submodule. `build.sh`/`build.bat` auto-init it if missing; `init_modules.sh` only bootstraps vcpkg and installs Boost.
 - Requires C++23 (`<print>`, `<format>`, `<source_location>`).
 - `SERVER` and `CLIENT` CMake options are mutually exclusive; the build script handles this.
 - No tests, no CI, no linter beyond `clang-format`.
@@ -30,7 +32,7 @@ make                       # runs clang-format on all .cpp/.h (excluding .git, o
 - Commands must be written in **lowercase** (enforced in `command_manager.cpp`).
 - Console messages use prefix patterns: `[~]` info, `[=]` display, `[!]` error.
 - Error handling: throw `std::invalid_argument` / `std::runtime_error` with `[!]`-prefixed messages.
-- Header-only vendored libs included as `<libs/CLI11.hpp>`, `<libs/json.hpp>`, `<libs/cpptui.hpp>`.
+- Header-only vendored libs are committed in `libs/` (CLI11, nlohmann/json, cpptui) and included as `<libs/CLI11.hpp>`, `<libs/json.hpp>`, `<libs/cpptui.hpp>`.
 - `.clang-format` is GNU-based, 4-space indent, `ColumnLimit 100`, `SortIncludes: false`.
 
 ## Gotchas

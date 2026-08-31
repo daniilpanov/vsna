@@ -8,13 +8,14 @@
 - `cpptui` - text based user interface library.
 
 # Build
-First you need to initialize boost via `vcpkg`.
-
-If you don't have it, you can install it by running:
+First initialize the `vcpkg` submodule and install Boost:
 
 ```bash
+git submodule update --init vcpkg
 .\init_modules.bat --init # See more flags with --help
 ```
+
+The header-only libraries (CLI11, nlohmann/json, cpptui) are already committed in `libs/`.
 
 **Default build**
 

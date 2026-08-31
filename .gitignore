@@ -75,8 +75,7 @@ __cmake_systeminformation
 *.bak
 *.swp
 
-# vcpkg
-vcpkg/
+# vcpkg installed packages
 vcpkg_installed/
 
 # debug information files
