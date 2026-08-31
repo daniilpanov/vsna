@@ -3,12 +3,10 @@
 #include <algorithm>
 #include <sstream>
 
-#include "types.h"
-
 constexpr uint16_t max_length{ 1024 };
 constexpr uint16_t max_threads{ 4 };
 
-inline std::string trim(STRING_ARG s)
+inline std::string trim(const std::string& s)
 {
 	size_t begin = s.find_first_not_of(" \t\r\n");
 	if (begin == std::string::npos)
@@ -17,9 +15,9 @@ inline std::string trim(STRING_ARG s)
 	return s.substr(begin, end - begin + 1);
 }
 
-inline STRING_VECTOR split(STRING_ARG input, STRING_ARG delimiter = " ")
+inline std::vector<std::string> split(const std::string& input, const std::string& delimiter = " ")
 {
-	STRING_VECTOR result;
+	std::vector<std::string> result;
 	if (delimiter.empty())
 	{
 		result.push_back(input);
@@ -40,7 +38,7 @@ inline STRING_VECTOR split(STRING_ARG input, STRING_ARG delimiter = " ")
 	return result;
 }
 
-inline bool isValidIPv4(STRING_ARG ipString)
+inline bool isValidIPv4(const std::string& ipString)
 {
 	try
 	{
@@ -53,7 +51,7 @@ inline bool isValidIPv4(STRING_ARG ipString)
 	}
 }
 
-inline std::string join(ARG_VECTOR strings, STRING_ARG delimiter = " ")
+inline std::string join(const std::vector<std::string>& strings, const std::string& delimiter = " ")
 {
 	if (strings.empty())
 		return "";

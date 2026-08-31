@@ -121,7 +121,6 @@ vsna/
     │   └── session.*          # ServerSession: WS-сессия клиента (read => echo => read)
     │
     ├── common/types/          # общие типы
-    │   ├── types.h            # STRING_ARG, ARG_VECTOR и др. алиасы
     │   └── pch.h              # precompiled header: boost/beast алиасы, fail()
     │
     └── utils/                 # утилиты общего назначения (цель utils.lib)

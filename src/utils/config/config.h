@@ -7,18 +7,17 @@
 #include <string>
 
 #include "addr.h"
-#include "types.h"
 
 using json = nlohmann::json;
 
 class Config {
   public:
 	Config() = default;
-	Config(const Addr&, STRING_ARG);
+	Config(const Addr&, const std::string&);
 
-	static Config loadFromFile(STRING_ARG);
+	static Config loadFromFile(const std::string&);
 	void setAddr(const Addr&);
-	void setPath(STRING_ARG);
+	void setPath(const std::string&);
 
 	Addr getAddr() const
 	{

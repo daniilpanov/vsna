@@ -51,10 +51,10 @@ void ClientUI::CLIParse(int argc, char **argv)
 	}
 }
 
-std::pair<std::string, STRING_VECTOR> ClientUI::parseArgs(STRING_ARG input)
+std::pair<std::string, std::vector<std::string> > ClientUI::parseArgs(const std::string& input)
 {
-	STRING_VECTOR args = split(input);
-	return { args[0], STRING_VECTOR(args.begin() + 1, args.end()) };
+	std::vector<std::string> args = split(input);
+	return { args[0], std::vector<std::string>(args.begin() + 1, args.end()) };
 }
 
 void ClientUI::run(int argc, char **argv)

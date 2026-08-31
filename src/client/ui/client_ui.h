@@ -21,5 +21,5 @@ class ClientUI {
 	{}
 	void CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);
-	std::pair<std::string, std::vector<std::string> > parseArgs(STRING_ARG input);
+	std::pair<std::string, std::vector<std::string> > parseArgs(const std::string& input);
 };

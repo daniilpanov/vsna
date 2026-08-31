@@ -1,12 +1,12 @@
 #include "addr.h"
 
-Addr::Addr(STRING_ARG ip, STRING_ARG port)
+Addr::Addr(const std::string& ip, const std::string& port)
 {
 	setIp(ip);
 	setPort(port);
 }
 
-void Addr::setIp(STRING_ARG ip)
+void Addr::setIp(const std::string& ip)
 {
 	if (ip.empty())
 	{
@@ -21,7 +21,7 @@ void Addr::setIp(STRING_ARG ip)
 	this->_ip = ip;
 }
 
-void Addr::setPort(STRING_ARG port)
+void Addr::setPort(const std::string& port)
 {
 	if (port.empty())
 	{

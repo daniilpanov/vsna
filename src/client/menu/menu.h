@@ -6,7 +6,6 @@
 
 #include "client.h"
 #include "config.h"
-#include "types.h"
 
 struct CommandInfo
 {
@@ -25,14 +24,14 @@ class MenuItem {
 	virtual ~MenuItem() = default;
 	MenuItem(Client& client, const CommandInfo& info) : _client(client), _info(info)
 	{}
-	virtual bool handle(ARG_VECTOR) = 0;
+	virtual bool handle(const std::vector<std::string>&) = 0;
 };
 
 class ConnectCommand : public MenuItem {
   public:
 	ConnectCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
-	bool handle(ARG_VECTOR args) override
+	bool handle(const std::vector<std::string>& args) override
 	{
 		_client.connect(args);
 		return false;
@@ -43,7 +42,7 @@ class ShowPathCommand : public MenuItem {
   public:
 	ShowPathCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
-	bool handle(ARG_VECTOR args) override
+	bool handle(const std::vector<std::string>& args) override
 	{
 		_client.showPath(args);
 		return false;
@@ -54,7 +53,7 @@ class MyPathCommand : public MenuItem {
   public:
 	MyPathCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
-	bool handle(ARG_VECTOR args) override
+	bool handle(const std::vector<std::string>& args) override
 	{
 		_client.myPath(args);
 		return false;
@@ -65,7 +64,7 @@ class SendFilesCommand : public MenuItem {
   public:
 	SendFilesCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
-	bool handle(ARG_VECTOR args) override
+	bool handle(const std::vector<std::string>& args) override
 	{
 		_client.sendFiles(args);
 		return false;
@@ -76,7 +75,7 @@ class DownloadCommand : public MenuItem {
   public:
 	DownloadCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
-	bool handle(ARG_VECTOR args) override
+	bool handle(const std::vector<std::string>& args) override
 	{
 		_client.download(args);
 		return false;
@@ -87,7 +86,7 @@ class PrintCommand : public MenuItem {
   public:
 	PrintCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
-	bool handle(ARG_VECTOR args) override
+	bool handle(const std::vector<std::string>& args) override
 	{
 		_client.print();
 		return false;
@@ -98,7 +97,7 @@ class ExitCommand : public MenuItem {
   public:
 	ExitCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
-	bool handle(ARG_VECTOR args) override
+	bool handle(const std::vector<std::string>& args) override
 	{
 		std::cout << "[~] Program was exit." << std::endl;
 		return true;
@@ -114,14 +113,14 @@ class HelpCommand : public MenuItem {
 	HelpCommand(Client& client, const CommandInfo& info, CommandManager& manager)
 	    : MenuItem(client, info), _manager(manager)
 	{}
-	bool handle(ARG_VECTOR args) override;
+	bool handle(const std::vector<std::string>& args) override;
 };
 
 class SendMessageCommand : public MenuItem {
   public:
 	SendMessageCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
 	{}
-	bool handle(ARG_VECTOR args) override
+	bool handle(const std::vector<std::string>& args) override
 	{
 		_client.sendMsg(args);
 		return false;

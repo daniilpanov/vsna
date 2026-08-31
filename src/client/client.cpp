@@ -6,27 +6,27 @@ void Client::print() const
 	std::cout << _config.toString() << std::endl;
 }
 
-void Client::showPath(ARG_VECTOR args) const
+void Client::showPath(const std::vector<std::string>& args) const
 {
 	std::cout << "Server path: " << _config.getPath() << std::endl;
 }
 
-void Client::myPath(ARG_VECTOR args) const
+void Client::myPath(const std::vector<std::string>& args) const
 {
 	std::cout << "Current path: " << _config.getPath() << std::endl;
 }
 
-void Client::sendFiles(ARG_VECTOR args)
+void Client::sendFiles(const std::vector<std::string>& args)
 {
 	std::cout << "Sending files..." << std::endl;
 }
 
-void Client::download(ARG_VECTOR args)
+void Client::download(const std::vector<std::string>& args)
 {
 	std::cout << "Downloading..." << std::endl;
 }
 
-void Client::connect(ARG_VECTOR args)
+void Client::connect(const std::vector<std::string>& args)
 {
 	Addr addr;
 	if (args.empty())
@@ -54,7 +54,7 @@ void Client::connect(ARG_VECTOR args)
 	_io_context.run();
 }
 
-void Client::sendMsg(ARG_VECTOR args)
+void Client::sendMsg(const std::vector<std::string>& args)
 {
 	std::cout << "Sending message..." << std::endl;
 	std::string msg = join(args, " ");
