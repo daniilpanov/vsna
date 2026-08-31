@@ -37,7 +37,7 @@ void Client::connect(ARG_VECTOR args)
             std::cerr << "Usage: connect [ip:port]" << std::endl;
             return;
         }
-        auto tempVec = split(args[0], ':');
+        auto tempVec = split(args[0], ":");
         if (tempVec.size() != 2) {
             std::cerr << "Usage: connect [ip:port]" << std::endl;
             return;
