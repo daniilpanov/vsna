@@ -11,7 +11,7 @@ EXCLUDED_DIRS := \
 	./libs \
 	./vcpkg
 
-.PHONY: list-format-files format
+.PHONY: format
 
 list-format-files:
 	@find "$(ROOT_DIR)" -type f \
