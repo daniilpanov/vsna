@@ -2,6 +2,8 @@
 
 #include <boost/beast/websocket.hpp>
 
+#include "message.h"
+
 NodeSession::NodeSession(Node& node, boost::asio::io_context& ioc)
     : _node(node), _ioc(ioc), _resolver(asio::make_strand(ioc)), _ws(asio::make_strand(ioc))
 {}
@@ -93,10 +95,22 @@ void NodeSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
 	if (ec)
 		return fail(ec, "read");
 
-	std::cout << "Received: " << beast::make_printable(_buffer.data()) << '\n';
+	// Deserialize the JSON frame into a message envelope.
+	json j = json::parse(beast::buffers_to_string(_buffer.data()), nullptr, false);
+	if (j.is_discarded())
+	{
+		std::cerr << "[!] Received a non-JSON frame, ignoring\n";
+	}
+	else
+	{
+		Message msg = Message::fromJson(j);
+		std::cout << "[~] Received message (type=" << json(msg.type).get<std::string>()
+		          << ", tx_id=" << msg.tx_id << ")\n";
+	}
 
 	// TODO: message handling (envelope + transactions) lands in later PRs.
-	_ws.text(_ws.got_text());
+	// For now echo the JSON frame back so both directions carry the envelope.
+	_ws.text(true);
 	_ws.async_write(_buffer.data(),
 	                beast::bind_front_handler(&NodeSession::on_write, shared_from_this()));
 }
