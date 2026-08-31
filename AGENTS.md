@@ -20,6 +20,25 @@ make format        # runs clang-format on all .cpp/.h
 - To clean: `rm -rf out` (or `cmake --build --preset default --target clean`).
 - No tests, no CI, no linter beyond `clang-format`.
 
+### Build on Termux (Android)
+
+The `vcpkg` toolchain doesn't work on Termux (its prebuilt `vcpkg` binary is glibc
+and can't drive the environment's toolchain). Use native packages and the `native`
+preset instead; the vcpkg `default` flow stays intact for other platforms.
+
+```bash
+pkg install -y boost boost-headers cli11 nlohmann-json
+make configure-native     # cmake --preset native
+make build-native         # cmake --build --preset native
+```
+
+- Output lands in `out-native/`.
+- Boost is header-only here (Asio/Beast/`boost::system`), so `libboost_system` /
+  `libboost_exception` are not needed — hence CMake requests only `Boost::headers`
+  (component libs are not required in `CMakeLists.txt`).
+- `nlohmann-json`, `CLI11`, Boost headers are picked up from `/usr/include` and the
+  standard CMake package paths (`find_package`) on the native preset.
+
 ## Architecture
 
 - **Shared entry point** (`src/main.cpp`): compile-time `#if BUILD_SERVER` / `#if BUILD_CLIENT` selects the role; it is compiled into two executables (`vsna_server`, `vsna_client`).
