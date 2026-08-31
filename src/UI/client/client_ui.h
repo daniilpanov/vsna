@@ -19,7 +19,8 @@ class ClientUI {
   public:
 	ClientUI() : _commandManager(_client)
 	{}
-	void CLIParse(int argc, char **argv);
+	std::vector<std::string> CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);
-	std::pair<std::string, std::vector<std::string> > parseArgs(STRING_ARG input);
+	void repl();
+	std::pair<std::string, std::vector<std::string> > parseArgs(const std::string& input);
 };

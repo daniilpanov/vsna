@@ -1,6 +1,6 @@
 #include "config.h"
 
-Config Config::loadFromFile(STRING_ARG filename)
+Config Config::loadFromFile(const std::string& filename)
 {
 	std::ifstream file;
 	file.open(filename);
@@ -21,7 +21,7 @@ Config Config::loadFromFile(STRING_ARG filename)
 	return config;
 }
 
-Config::Config(const Addr& addr, STRING_ARG _server_path)
+Config::Config(const Addr& addr, const std::string& _server_path)
 {
 	setAddr(addr);
 	setPath(_server_path);
@@ -32,7 +32,7 @@ void Config::setAddr(const Addr& addr)
 	this->_addr = addr;
 }
 
-void Config::setPath(STRING_ARG _server_path)
+void Config::setPath(const std::string& _server_path)
 {
 	if (_server_path.empty())
 	{

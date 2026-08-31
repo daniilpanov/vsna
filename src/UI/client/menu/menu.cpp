@@ -1,7 +1,7 @@
 #include "menu.h"
 #include "command_manager.h"
 
-bool HelpCommand::handle(ARG_VECTOR args)
+bool HelpCommand::handle(const std::vector<std::string>& args)
 {
 	auto commands = _manager.listCommands();
 	std::cout << "[=] Available commands:" << std::endl;

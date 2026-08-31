@@ -1,7 +1,8 @@
 #include "command_manager.h"
 
 template <typename T, typename... Args>
-void CommandManager::addCommand(STRING_ARG name, STRING_ARG desc, STRING_ARG usage, Args&&...args)
+void CommandManager::addCommand(const std::string& name, const std::string& desc,
+                                const std::string& usage, Args&&...args)
 {
 	_commands[name] = std::make_unique<T>(_client, CommandInfo{ name, desc, usage },
 	                                      std::forward<Args>(args)...);
@@ -21,7 +22,7 @@ void CommandManager::initCommands()
 	addCommand<SendMessageCommand>("send", "Send a message", "[message]");
 }
 
-bool CommandManager::execute(STRING_ARG name, STRING_VECTOR args)
+bool CommandManager::execute(const std::string& name, std::vector<std::string> args)
 {
 	auto it = _commands.find(std::string(name));
 	if (it == _commands.end())

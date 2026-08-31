@@ -2,19 +2,18 @@
 #include <sstream>
 #include <string>
 
-#include "types.h"
 #include "helper.h"
 
 class Addr {
   public:
 	Addr() = default;
-	Addr(STRING_ARG, STRING_ARG);
+	Addr(const std::string&, const std::string&);
 
-	STRING_ARG ip() const
+	const std::string& ip() const
 	{
 		return _ip;
 	}
-	STRING_ARG port() const
+	const std::string& port() const
 	{
 		return _port;
 	}
@@ -23,8 +22,8 @@ class Addr {
 		return std::stoi(_port);
 	}
 
-	void setIp(STRING_ARG);
-	void setPort(STRING_ARG);
+	void setIp(const std::string&);
+	void setPort(const std::string&);
 
 	const std::string toString() const
 	{
