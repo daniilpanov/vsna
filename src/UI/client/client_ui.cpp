@@ -1,8 +1,9 @@
 #include "client_ui.h"
 
-void ClientUI::CLIParse(int argc, char **argv)
+std::vector<std::string> ClientUI::CLIParse(int argc, char **argv)
 {
 	CLI::App app{ "VSNA Client" };
+	app.allow_extras();
 
 	std::string ip{ "127.0.0.1" }; // localhost
 	std::string port{ "5555" };
@@ -20,6 +21,11 @@ void ClientUI::CLIParse(int argc, char **argv)
 	}
 	catch (const CLI::ParseError& e)
 	{
+		if (dynamic_cast<const CLI::Success*>(&e) != nullptr)
+		{
+			app.exit(e);
+			exit(EXIT_SUCCESS);
+		}
 		app.exit(e);
 		std::cerr << e.what() << std::endl;
 		exit(-1);
@@ -49,6 +55,8 @@ void ClientUI::CLIParse(int argc, char **argv)
 	{
 		this->_client.setConfig(Config(Addr(ip, port), path));
 	}
+
+	return app.remaining();
 }
 
 std::pair<std::string, std::vector<std::string> > ClientUI::parseArgs(const std::string& input)
@@ -57,11 +65,8 @@ std::pair<std::string, std::vector<std::string> > ClientUI::parseArgs(const std:
 	return { args[0], std::vector<std::string>(args.begin() + 1, args.end()) };
 }
 
-void ClientUI::run(int argc, char **argv)
+void ClientUI::repl()
 {
-	this->CLIParse(argc, argv);
-	_commandManager.initCommands();
-
 	_client.print();
 
 	std::string input;
@@ -77,4 +82,20 @@ void ClientUI::run(int argc, char **argv)
 		if (_commandManager.execute(name, cmdArgs))
 			break;
 	}
+}
+
+void ClientUI::run(int argc, char **argv)
+{
+	auto extras = this->CLIParse(argc, argv);
+	_commandManager.initCommands();
+
+	if (!extras.empty())
+	{
+		std::string name = extras[0];
+		std::vector<std::string> cmdArgs(extras.begin() + 1, extras.end());
+		_commandManager.execute(name, cmdArgs);
+		return;
+	}
+
+	repl();
 }
