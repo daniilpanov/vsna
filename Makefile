@@ -32,5 +32,4 @@ configure:
 	"$(CMAKE_BIN)" --preset default
 
 build:
-	$(MAKE) --no-print-directory configure
 	"$(CMAKE_BIN)" --build --preset default
