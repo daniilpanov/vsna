@@ -8,7 +8,8 @@ SOURCE_EXTENSIONS := \
 EXCLUDED_DIRS := \
 	./.git \
 	./out \
-	./libs
+	./libs \
+	./vcpkg
 
 .PHONY: list-format-files format
 
