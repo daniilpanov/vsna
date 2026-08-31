@@ -7,20 +7,24 @@ VSNA — a C++23 CLI project (WebSocket-based data exchange over VLAN). Early-st
 ## Build
 
 ```bash
-./init_modules.sh          # first time only: clones vcpkg, installs Boost, downloads header libs to libs/
-./build.sh --server        # or --client; no flag = both
-make                       # runs clang-format on all .cpp/.h (excluding .git, out, libs)
+git submodule update --init vcpkg   # first time only in a fresh clone
+cmake --preset default               # or: cmake -B out; bootstraps vcpkg + installs Boost + configures both targets
+cmake --build --preset default      # builds vsna_server AND vsna_client together
+make                                 # runs clang-format on all .cpp/.h (excluding .git, out, libs)
 ```
 
-- Build outputs go to `out/server/` or `out/client/`.
+- Build outputs go to `out/` (`vsna_server`, `vsna_client`), Boost via manifest into `out/vcpkg_installed/`.
+- `vcpkg` is a git submodule; there is **no init_modules script**. The vcpkg CMake toolchain (referenced in `CMakePresets.json`) auto-bootstraps vcpkg and auto-installs Boost declared in `vcpkg.json` during configure.
+- CMake is the entry point — there is **no build.sh/build.bat either**.
 - Requires C++23 (`<print>`, `<format>`, `<source_location>`).
-- `SERVER` and `CLIENT` CMake options are mutually exclusive; the build script handles this.
+- `BUILD_SERVER_EXE` / `BUILD_CLIENT_EXE` CMake options (both default `ON`, built in one configure). `-DBUILD_SERVER_EXE=OFF` builds client only, and vice versa.
+- To clean: `rm -rf out` (or `cmake --build --preset default --target clean`).
 - No tests, no CI, no linter beyond `clang-format`.
 
 ## Architecture
 
-- **Single entry point** (`src/main.cpp`): compile-time `#if BUILD_SERVER` / `#if BUILD_CLIENT` selects the role.
-- Three static libs: `utils` (always), `server` or `client` (mutually exclusive).
+- **Shared entry point** (`src/main.cpp`): compile-time `#if BUILD_SERVER` / `#if BUILD_CLIENT` selects the role; it is compiled into two executables (`vsna_server`, `vsna_client`).
+- Three static libs: `utils` (always), plus `server` and `client` (built only when the matching executable is enabled).
 - `src/common/types/pch.h` — precompiled header with Boost.Beast/Asio includes and common `using` declarations.
 - `src/utils/helper/helper.h` — inline helpers (trim, split, isValidIPv4, join) + constants `max_length` (1024) and `max_threads` (4).
 - `src/utils/logger/logger.h` — C++23 `std::print`-based logging.
@@ -30,7 +34,7 @@ make                       # runs clang-format on all .cpp/.h (excluding .git, o
 - Commands must be written in **lowercase** (enforced in `command_manager.cpp`).
 - Console messages use prefix patterns: `[~]` info, `[=]` display, `[!]` error.
 - Error handling: throw `std::invalid_argument` / `std::runtime_error` with `[!]`-prefixed messages.
-- Header-only vendored libs included as `<libs/CLI11.hpp>`, `<libs/json.hpp>`, `<libs/cpptui.hpp>`.
+- Header-only vendored libs are committed in `libs/` (CLI11, nlohmann/json, cpptui) and included as `<libs/CLI11.hpp>`, `<libs/json.hpp>`, `<libs/cpptui.hpp>`.
 - `.clang-format` is GNU-based, 4-space indent, `ColumnLimit 100`, `SortIncludes: false`.
 
 ## Gotchas

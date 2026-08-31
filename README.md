@@ -8,30 +8,20 @@
 - `cpptui` - text based user interface library.
 
 # Build
-First you need to initialize boost via `vcpkg`.
-
-If you don't have it, you can install it by running:
-
-```bash
-.\init_modules.bat --init # See more flags with --help
-```
-
-**Default build**
-
-Then you can build the project (for client or server):
+Initialize the `vcpkg` submodule (first time only), then configure and build. CMake
+auto-bootstraps `vcpkg` and installs Boost (declared in `vcpkg.json`) during configure:
 
 ```bash
-.\build.bat [--client|--server]
+git submodule update --init vcpkg
+cmake --preset default     # vcpkg bootstrap + Boost install + configure
+cmake --build --preset default
 ```
 
-Otherwise, if you do not specify the flag, both configurations will be built.
+The header-only libraries (CLI11, nlohmann/json, cpptui) are already committed in `libs/`.
 
-If you use Unix system, you can do the same actions via Shell scripts:
-
-```bash
-./init_modules.sh
-./build.sh # See more flags with --help
-```
+`cmake --preset default` builds both `vsna_server` and `vsna_client` into `out/`. To build
+only the server or client, pass `-DBUILD_SERVER_EXE=OFF` / `-DBUILD_CLIENT_EXE=OFF` to the
+configure step.
 
 # To run
 **Client**
@@ -78,9 +68,9 @@ vsna/
 ├── .clang-format              # правила форматирования кода
 ├── Makefile                   # хелпер форматирования кода
 ├── .gitignore
-├── init_modules.bat / .sh     # инициализация зависимостей (vcpkg)
-├── build.bat / build.sh       # сборка: cmake configure + build (--server/--client/--clean)
-├── CMakeLists.txt             # корневой сценарий сборки (цели: vsna exe + utils/client/server libs)
+├── vcpkg.json                  # манифест зависимостей vcpkg (установка Boost)
+├── CMakeLists.txt             # корневой сценарий сборки (цели: vsna_server + vsna_client + utils/client/server libs)
+├── CMakePresets.json          # пресеты сборки (default = обе цели через vcpkg)
 ├── README.md
 │
 ├── config/                    # конфиги приложения
