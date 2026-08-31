@@ -1,7 +1,7 @@
 #pragma once
 #include <boost/asio.hpp>
 #include <iostream>
-#include <libs/CLI11.hpp>
+#include <CLI/CLI.hpp>
 #include <memory>
 #include <string>
 

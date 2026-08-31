@@ -8,13 +8,13 @@ VSNA — a C++23 CLI project (WebSocket-based data exchange over VLAN). Early-st
 
 ```bash
 git submodule update --init vcpkg   # first time only in a fresh clone
-cmake --preset default               # or: cmake -B out; bootstraps vcpkg + installs Boost + configures both targets
+cmake --preset default               # or: cmake -B out; bootstraps vcpkg + installs deps + configures both targets
 cmake --build --preset default      # builds vsna_server AND vsna_client together
-make                                 # runs clang-format on all .cpp/.h (excluding .git, out, libs)
+make                                 # runs clang-format on all .cpp/.h (excluding .git, out)
 ```
 
-- Build outputs go to `out/` (`vsna_server`, `vsna_client`), Boost via manifest into `out/vcpkg_installed/`.
-- `vcpkg` is a git submodule; there is **no init_modules script**. The vcpkg CMake toolchain (referenced in `CMakePresets.json`) auto-bootstraps vcpkg and auto-installs Boost declared in `vcpkg.json` during configure.
+- Build outputs go to `out/` (`vsna_server`, `vsna_client`), deps via manifest into `out/vcpkg_installed/`.
+- `vcpkg` is a git submodule; there is **no init_modules script**. The vcpkg CMake toolchain (referenced in `CMakePresets.json`) auto-bootstraps vcpkg and auto-installs all deps declared in `vcpkg.json` during configure.
 - CMake is the entry point — there is **no build.sh/build.bat either**.
 - Requires C++23 (`<print>`, `<format>`, `<source_location>`).
 - `BUILD_SERVER_EXE` / `BUILD_CLIENT_EXE` CMake options (both default `ON`, built in one configure). `-DBUILD_SERVER_EXE=OFF` builds client only, and vice versa.
@@ -34,7 +34,7 @@ make                                 # runs clang-format on all .cpp/.h (excludi
 - Commands must be written in **lowercase** (enforced in `command_manager.cpp`).
 - Console messages use prefix patterns: `[~]` info, `[=]` display, `[!]` error.
 - Error handling: throw `std::invalid_argument` / `std::runtime_error` with `[!]`-prefixed messages.
-- Header-only vendored libs are committed in `libs/` (CLI11, nlohmann/json) and included as `<libs/CLI11.hpp>`, `<libs/json.hpp>`.
+- All deps come from `vcpkg` (`vcpkg.json`: Boost, cli11, nlohmann-json). CLI11 is included as `<CLI/CLI.hpp>` (v2.7 multi-header layout — not `<CLI/CLI11.hpp>`) and nlohmann as `<nlohmann/json.hpp>`. CLI11 has out-of-line symbols, so `find_package(CLI11 CONFIG)` + link `CLI11::CLI11` is required (set in `CMakeLists.txt`).
 - `.clang-format` is GNU-based, 4-space indent, `ColumnLimit 100`, `SortIncludes: false`.
 
 ## Gotchas
