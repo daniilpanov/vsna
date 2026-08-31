@@ -34,6 +34,46 @@ void NodeSession::dial(const std::string& host, const std::string& port)
 	    host, port, beast::bind_front_handler(&NodeSession::on_resolve, shared_from_this()));
 }
 
+void NodeSession::send(const Message& msg)
+{
+	{
+		std::lock_guard<std::mutex> lock(_write_mutex);
+		_write_queue.push_back(msg);
+		if (_writing)
+			return;
+		_writing = true;
+	}
+
+	asio::dispatch(_ws.get_executor(), [self = shared_from_this()] { self->do_write_next(); });
+}
+
+void NodeSession::onTx(uint64_t tx_id, Handler handler)
+{
+	_handlers[tx_id] = std::move(handler);
+}
+
+void NodeSession::onMessage(Handler handler)
+{
+	_default_handler = std::move(handler);
+}
+
+void NodeSession::do_write_next()
+{
+	{
+		std::lock_guard<std::mutex> lock(_write_mutex);
+		if (_write_queue.empty())
+		{
+			_writing = false;
+			return;
+		}
+		_outgoing = _write_queue.front().toJson().dump();
+	}
+
+	_ws.text(true);
+	_ws.async_write(asio::buffer(_outgoing),
+	                beast::bind_front_handler(&NodeSession::on_write, shared_from_this()));
+}
+
 void NodeSession::on_accept(beast::error_code ec)
 {
 	if (ec)
@@ -95,24 +135,37 @@ void NodeSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
 	if (ec)
 		return fail(ec, "read");
 
-	// Deserialize the JSON frame into a message envelope.
+	// Deserialize the JSON frame into a message envelope and route it.
 	json j = json::parse(beast::buffers_to_string(_buffer.data()), nullptr, false);
+	_buffer.consume(_buffer.size());
 	if (j.is_discarded())
 	{
 		std::cerr << "[!] Received a non-JSON frame, ignoring\n";
 	}
 	else
 	{
-		Message msg = Message::fromJson(j);
-		std::cout << "[~] Received message (type=" << json(msg.type).get<std::string>()
-		          << ", tx_id=" << msg.tx_id << ")\n";
+		route(Message::fromJson(j));
 	}
 
-	// TODO: message handling (envelope + transactions) lands in later PRs.
-	// For now echo the JSON frame back so both directions carry the envelope.
-	_ws.text(true);
-	_ws.async_write(_buffer.data(),
-	                beast::bind_front_handler(&NodeSession::on_write, shared_from_this()));
+	// Keep the connection alive and read the next frame.
+	do_read();
+}
+
+void NodeSession::route(const Message& msg)
+{
+	auto it = _handlers.find(msg.tx_id);
+	if (it != _handlers.end())
+	{
+		it->second(msg);
+		return;
+	}
+	if (_default_handler)
+	{
+		_default_handler(msg);
+		return;
+	}
+	std::cout << "[~] Unhandled message (type=" << json(msg.type).get<std::string>()
+	          << ", tx_id=" << msg.tx_id << ")\n";
 }
 
 void NodeSession::on_write(beast::error_code ec, std::size_t bytes_transferred)
@@ -120,9 +173,15 @@ void NodeSession::on_write(beast::error_code ec, std::size_t bytes_transferred)
 	boost::ignore_unused(bytes_transferred);
 
 	if (ec)
-		return fail(ec, "write");
+	{
+		fail(ec, "write");
+		return;
+	}
 
-	_buffer.consume(_buffer.size());
+	{
+		std::lock_guard<std::mutex> lock(_write_mutex);
+		_write_queue.pop_front();
+	}
 
-	do_read();
+	do_write_next();
 }
