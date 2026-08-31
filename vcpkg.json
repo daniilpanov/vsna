@@ -1,0 +1,14 @@
+{
+  "name": "vsna",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "boost-filesystem",
+    "boost-system",
+    "boost-exception",
+    "boost-asio",
+    "boost-beast",
+    "boost-thread",
+    "cli11",
+    "nlohmann-json"
+  ]
+}
