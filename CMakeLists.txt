@@ -41,6 +41,7 @@ add_library(utils STATIC ${CORE_DIR}/utils/addr/addr.cpp
                           ${CORE_DIR}/utils/helper/helper.h)
 target_include_directories(utils PUBLIC
     ${CORE_DIR}/common/types
+    ${CORE_DIR}/common/message
     ${CORE_DIR}/utils
     ${CORE_DIR}/utils/addr
     ${CORE_DIR}/utils/config
