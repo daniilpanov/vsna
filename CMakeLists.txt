@@ -22,12 +22,11 @@ set(SERVER_DIR   ${SRC_DIR}/server)
 set(CLIENT_DIR   ${SRC_DIR}/client)
 
 # Boost
-set(BOOST_REQUIRED_COMPONENTS
-    filesystem
-    system
-    exception
-)
-find_package(Boost REQUIRED COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
+# VSNA uses Boost header-only libraries (Asio, Beast, system headers),
+# so only the headers target is required. This works both with vcpkg (PC)
+# and with system-packaged Boost (e.g. Termux), where the component .so
+# libs (libboost_system, libboost_exception) may not exist.
+find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 find_package(CLI11 CONFIG REQUIRED)
 
@@ -54,7 +53,7 @@ target_include_directories(utils PUBLIC
     ${UTILS_DIR}/helper
 )
 target_include_directories(utils PUBLIC ${Boost_INCLUDE_DIRS})
-target_link_libraries(utils PUBLIC Boost::headers ${Boost_LIBRARIES})
+target_link_libraries(utils PUBLIC Boost::headers)
 
 # Helper to define a binary (server or client)
 function(add_vsna_binary kind)

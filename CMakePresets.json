@@ -17,12 +17,27 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "-g -O0 -fno-omit-frame-pointer"
       }
+    },
+    {
+      "name": "native",
+      "displayName": "Native (no vcpkg)",
+      "description": "Use system-installed dependencies (e.g. Termux apt) instead of vcpkg",
+      "binaryDir": "${sourceDir}/out-native",
+      "cacheVariables": {
+        "VCPKG_MANIFEST_MODE": "OFF",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-g -O0 -fno-omit-frame-pointer"
+      }
     }
   ],
   "buildPresets": [
     {
       "name": "default",
       "configurePreset": "default"
+    },
+    {
+      "name": "native",
+      "configurePreset": "native"
     }
   ]
 }

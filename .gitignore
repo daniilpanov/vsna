@@ -9,6 +9,7 @@
 target
 build
 out
+out-*
 
 # Configuration
 __config__.json

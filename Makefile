@@ -5,7 +5,7 @@ EXCLUDED_DIRS := ./.git ./out ./libs ./vcpkg
 CLANG_FORMAT ?= clang-format
 CMAKE_BIN ?= cmake
 
-.PHONY: format configure build
+.PHONY: format configure configure-native build build-native
 .DEFAULT_GOAL := format
 
 list-format-files:
@@ -31,5 +31,13 @@ configure:
 	git submodule init vcpkg
 	"$(CMAKE_BIN)" --preset default
 
+# Native build without vcpkg (uses system-installed deps, e.g. Termux apt).
+# Keeps the 'default'/'build' targets (vcpkg) intact for other platforms.
+configure-native:
+	"$(CMAKE_BIN)" --preset native
+
 build:
 	"$(CMAKE_BIN)" --build --preset default
+
+build-native:
+	"$(CMAKE_BIN)" --build --preset native

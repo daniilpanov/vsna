@@ -22,6 +22,33 @@ make build         # build the targets
 To build only the server or client, pass `-DBUILD_SERVER_EXE=OFF` / `-DBUILD_CLIENT_EXE=OFF`
 to the `cmake --preset default` after `make configure`
 
+# How to build on Termux (Android)
+
+On Termux, the `vcpkg` toolchain is hard to get working (the shipped `vcpkg`
+binary is a glibc binary that conflicts with the environment), so use the native
+packages from the Termux repository instead. On other platforms the regular vcpkg
+flow (`make configure` / `make build`) is unaffected.
+
+1. Install the dependencies (bionic/Termux packages — this is what the bundled
+   compiler targets, exactly like a regular Termux app):
+
+```bash
+pkg install -y boost boost-headers cli11 nlohmann-json
+```
+
+2. Configure and build with the `native` preset (no vcpkg):
+
+```bash
+make configure-native     # cmake --preset native
+make build-native         # cmake --build --preset native
+```
+
+Binaries land in `out-native/`.
+
+> Note: Boost is used header-only (Asio/Beast/`boost::system`), so no Boost
+> runtime libraries are linked — this is also why `libboost_system` /
+> `libboost_exception` are not required on Termux.
+
 # To run
 Binaries land in `out/` (on Windows multi-config builds add `Debug\ ` subfolder).
 
