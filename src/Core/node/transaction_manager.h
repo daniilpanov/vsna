@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <cstdint>
 #include <fstream>
 #include <memory>
@@ -56,6 +57,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 		std::string localPath;
 		uint64_t totalSize;
 		uint64_t nextOffset;
+		int level; // adaptive zstd level for this transfer
+		std::chrono::steady_clock::time_point lastSendAt;
+		std::chrono::microseconds lastCompressTime;
 	};
 
 	Node& _node;

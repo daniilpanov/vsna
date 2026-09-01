@@ -6,9 +6,10 @@
     "boost-system",
     "boost-exception",
     "boost-asio",
-    "boost-beast",
+"boost-beast",
     "boost-thread",
     "cli11",
-    "nlohmann-json"
+    "nlohmann-json",
+    "zstd"
   ]
 }
