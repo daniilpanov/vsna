@@ -1,9 +1,12 @@
 #pragma once
 #include <boost/asio/ip/address.hpp>
 #include <algorithm>
+#include <cstddef>
 #include <sstream>
 
-constexpr uint16_t max_length{ 1024 };
+// Maximum chunk size for a single data frame during a transfer. Enlarged from
+// 1024 to 256&nbsp;KB so a file is transferred as a small number of chunks.
+constexpr size_t max_length{ 256 * 1024 };
 constexpr uint16_t max_threads{ 4 };
 
 inline std::string trim(const std::string& s)

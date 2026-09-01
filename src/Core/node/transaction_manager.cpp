@@ -1,6 +1,9 @@
 #include "transaction_manager.h"
 
 #include <filesystem>
+#include <fstream>
+
+#include <boost/asio/post.hpp>
 
 #include "base64.h"
 #include "node.h"
@@ -15,6 +18,10 @@ TransactionManager::TransactionManager(Node& node, std::shared_ptr<NodeSession> 
     : _node(node), _session(std::move(session))
 {}
 
+// ---------------------------------------------------------------------------
+// Sender
+// ---------------------------------------------------------------------------
+
 void TransactionManager::sendFile(const std::string& localPath)
 {
 	auto self = shared_from_this();
@@ -23,35 +30,56 @@ void TransactionManager::sendFile(const std::string& localPath)
 
 void TransactionManager::do_sendFile(const std::string& localPath)
 {
-	uint64_t txId = _nextId++;
-
-	// Register the per-transaction handler that receives the transfer replies
-	// (claim_ack, data_ack, commit_ack, abort) for this tx_id.
-	_session->onTx(txId, [this, txId](const Message& msg) { handleReply(txId, msg); });
-
-	_outgoing.emplace(txId, Outgoing{ txId, localPath, 0 });
-
 	namespace fs = std::filesystem;
+
 	std::error_code ec;
-	auto size = fs::file_size(localPath, ec);
+	uint64_t total = fs::file_size(localPath, ec);
 	if (ec)
 	{
 		std::cerr << "[!] Cannot stat " << localPath << ": " << ec.message() << '\n';
-		abort(txId, "cannot stat local file");
 		return;
 	}
 
-	do_claim(txId, localPath);
+	uint64_t txId = _nextId++;
+	_session->onTx(txId, [this, txId](const Message& msg) { handleReply(txId, msg); });
+	_outgoing.emplace(txId, Outgoing{ txId, localPath, total, 0 });
+
+	// Ask the peer how much of this file it already staged (resume support),
+	// then claim and resume from that offset.
+	Message status;
+	status.type = MessageType::Status;
+	status.tx_id = txId;
+	status.payload = { { "name", fs::path(localPath).filename().string() }, { "size", total } };
+	_session->send(status);
 }
 
-void TransactionManager::do_claim(uint64_t txId, const std::string& localPath)
+void TransactionManager::sendChunk(Outgoing& tx)
 {
-	Message claim;
-	claim.type = MessageType::Claim;
-	claim.tx_id = txId;
-	claim.payload = { { "name", std::filesystem::path(localPath).filename().string() },
-		              { "size", std::filesystem::file_size(localPath) } };
-	_session->send(claim);
+	if (tx.nextOffset >= tx.totalSize)
+	{
+		Message commit;
+		commit.type = MessageType::Commit;
+		commit.tx_id = tx.txId;
+		_session->send(commit);
+		return;
+	}
+
+	// Move a chunk of up to max_length bytes from the local file to the wire.
+	// The next chunk (or the commit) is sent only after this one is acked.
+	std::size_t len
+	    = static_cast<std::size_t>(std::min<uint64_t>(max_length, tx.totalSize - tx.nextOffset));
+	std::string buf(len, '\0');
+	{
+		std::ifstream in(tx.localPath, std::ios::binary);
+		in.seekg(static_cast<std::streamoff>(tx.nextOffset));
+		in.read(buf.data(), static_cast<std::streamsize>(len));
+	}
+
+	Message data;
+	data.type = MessageType::Data;
+	data.tx_id = tx.txId;
+	data.payload = { { "offset", tx.nextOffset }, { "data", base64::encode(buf) } };
+	_session->send(data);
 }
 
 void TransactionManager::handleReply(uint64_t txId, const Message& msg)
@@ -63,46 +91,34 @@ void TransactionManager::handleReply(uint64_t txId, const Message& msg)
 
 	switch (msg.type)
 	{
+	case MessageType::StatusAck: {
+		// Peer reports how much it already has; move into claim.
+		Message claim;
+		claim.type = MessageType::Claim;
+		claim.tx_id = txId;
+		claim.payload = { { "name", std::filesystem::path(tx.localPath).filename().string() },
+			              { "size", tx.totalSize } };
+		_session->send(claim);
+		break;
+	}
 	case MessageType::ClaimAck: {
-		bool ok = msg.payload.value("ok", false);
-		if (!ok)
+		if (!msg.payload.value("ok", false))
 		{
-			std::cerr << "[!] Peer rejected claim: "
-			          << msg.payload.value("message", "no reason given") << '\n';
-			abort(txId, "claim rejected");
+			abort(txId, msg.payload.value("message", "claim rejected"));
 			return;
 		}
-		// Read the whole file, base64-encode it and send it as one data frame.
-		// Chunking/ACK-per-chunk and resume land with the chunked-transfer issue.
-		std::ifstream in(tx.localPath, std::ios::binary);
-		if (!in)
-		{
-			abort(txId, "cannot open local file");
-			return;
-		}
-		std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-
-		Message data;
-		data.type = MessageType::Data;
-		data.tx_id = txId;
-		data.payload = { { "data", base64::encode(content) } };
-		_session->send(data);
-		tx.phase = 1;
+		tx.nextOffset = msg.payload.value("offset", 0);
+		sendChunk(tx);
 		break;
 	}
 	case MessageType::DataAck: {
-		if (msg.payload.value("ok", false))
-		{
-			Message commit;
-			commit.type = MessageType::Commit;
-			commit.tx_id = txId;
-			_session->send(commit);
-			tx.phase = 2;
-		}
-		else
+		if (!msg.payload.value("ok", false))
 		{
 			abort(txId, "data rejected");
+			return;
 		}
+		tx.nextOffset = msg.payload.value("offset", tx.nextOffset);
+		sendChunk(tx);
 		break;
 	}
 	case MessageType::CommitAck: {
@@ -123,19 +139,63 @@ void TransactionManager::handleReply(uint64_t txId, const Message& msg)
 	}
 }
 
-void TransactionManager::handleClaim(const Message& msg)
-{
-	uint64_t txId = msg.tx_id;
+// ---------------------------------------------------------------------------
+// Receiver
+// ---------------------------------------------------------------------------
 
-	if (!stageClaim(txId, msg))
+void TransactionManager::handleDefault(const Message& msg)
+{
+	if (msg.type == MessageType::Claim)
+		onClaim(msg.tx_id, msg);
+	else if (msg.type == MessageType::Status)
+		onStatus(msg);
+}
+
+void TransactionManager::onStatus(const Message& msg)
+{
+	const std::string name
+	    = std::filesystem::path(msg.payload.value("name", "")).filename().string();
+	const uint64_t size = msg.payload.value("size", 0);
+
+	Message ack;
+	ack.type = MessageType::StatusAck;
+	ack.tx_id = msg.tx_id;
+	ack.payload = {
+		{ "ok", true }, { "name", name }, { "size", size }, { "offset", resumeOffset(name, size) }
+	};
+	_session->send(ack);
+}
+
+void TransactionManager::onClaim(uint64_t txId, const Message& msg)
+{
+	namespace fs = std::filesystem;
+	const std::string name = fs::path(msg.payload.value("name", "")).filename().string();
+	const uint64_t size = msg.payload.value("size", 0);
+
+	fs::path share(_node.getConfig().getPath());
+	fs::path stagingDir = share / kStagingDir;
+	std::error_code ec;
+	fs::create_directories(stagingDir, ec);
+
+	std::string staging = (stagingDir / (name + ".part")).string();
+	uint64_t offset = resumeOffset(name, size);
+
+	Incoming in;
+	in.stagingPath = staging;
+	in.finalPath = (share / name).string();
+	in.size = size;
+	// Resume an interrupted transfer by appending, otherwise start fresh.
+	in.stream.open(staging, (offset > 0 ? std::ios::binary | std::ios::app
+	                                    : std::ios::binary | std::ios::trunc));
+	if (!in.stream.is_open())
 	{
 		reply(txId, MessageType::ClaimAck,
 		      { { "ok", false }, { "message", "cannot stage destination file" } });
 		return;
 	}
+	_incoming.emplace(txId, std::move(in));
 
-	// Register the receiver-side handler for the remaining messages of this
-	// transaction (data, commit, abort).
+	// Register the receive-side handler for the rest of this transaction.
 	_session->onTx(txId, [this, txId](const Message& m) {
 		switch (m.type)
 		{
@@ -154,26 +214,18 @@ void TransactionManager::handleClaim(const Message& msg)
 		}
 	});
 
-	reply(txId, MessageType::ClaimAck, { { "ok", true } });
+	reply(txId, MessageType::ClaimAck, { { "ok", true }, { "offset", offset } });
 }
 
-bool TransactionManager::stageClaim(uint64_t txId, const Message& msg)
+uint64_t TransactionManager::resumeOffset(const std::string& name, uint64_t size) const
 {
 	namespace fs = std::filesystem;
-	fs::path share(_node.getConfig().getPath());
-	fs::path staging = share / kStagingDir;
+	fs::path staging = fs::path(_node.getConfig().getPath()) / kStagingDir / (name + ".part");
 	std::error_code ec;
-	fs::create_directories(staging, ec);
-
-	Incoming in;
-	in.stagingPath = (staging / (std::to_string(txId) + ".part")).string();
-	in.finalPath = (share / msg.payload.value("name", "unnamed")).string();
-	in.stream.open(in.stagingPath, std::ios::binary | std::ios::trunc);
-	if (!in.stream.is_open())
-		return false;
-
-	_incoming.emplace(txId, std::move(in));
-	return true;
+	uint64_t cur = fs::file_size(staging, ec);
+	if (ec)
+		return 0;
+	return cur < size ? cur : size;
 }
 
 void TransactionManager::handleData(uint64_t txId, const Message& msg)
@@ -189,7 +241,8 @@ void TransactionManager::handleData(uint64_t txId, const Message& msg)
 	it->second.stream.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
 	it->second.stream.flush();
 
-	reply(txId, MessageType::DataAck, { { "ok", true } });
+	const uint64_t offset = static_cast<uint64_t>(it->second.stream.tellp());
+	reply(txId, MessageType::DataAck, { { "ok", true }, { "offset", offset } });
 }
 
 void TransactionManager::finishIncoming(uint64_t txId, bool commit)
@@ -217,15 +270,9 @@ void TransactionManager::finishIncoming(uint64_t txId, bool commit)
 	_incoming.erase(it);
 }
 
-void TransactionManager::abort(uint64_t txId, const std::string& reason)
-{
-	Message abort;
-	abort.type = MessageType::Abort;
-	abort.tx_id = txId;
-	abort.payload = { { "reason", reason } };
-	_session->send(abort);
-	removeOutgoing(txId);
-}
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 void TransactionManager::reply(uint64_t txId, MessageType type, json payload)
 {
@@ -239,4 +286,14 @@ void TransactionManager::reply(uint64_t txId, MessageType type, json payload)
 void TransactionManager::removeOutgoing(uint64_t txId)
 {
 	_outgoing.erase(txId);
+}
+
+void TransactionManager::abort(uint64_t txId, const std::string& reason)
+{
+	Message abort;
+	abort.type = MessageType::Abort;
+	abort.tx_id = txId;
+	abort.payload = { { "reason", reason } };
+	_session->send(abort);
+	removeOutgoing(txId);
 }
