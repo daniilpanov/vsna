@@ -91,6 +91,12 @@ void NodeUI::run(int argc, char **argv)
 	auto extras = this->CLIParse(argc, argv);
 	_commandManager.initCommands();
 
+	// Notify (and offer to connect to) every newly discovered peer.
+	_node->setOnPeerDiscovered([](const std::string& addr) {
+		std::cout << "[+] New peer discovered: " << addr << " — type 'connect " << addr
+		          << "' to connect\n";
+	});
+
 	// Start listening in the background.
 	_node->start();
 

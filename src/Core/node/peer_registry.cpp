@@ -2,21 +2,39 @@
 
 void PeerRegistry::addKnown(const std::string& addr)
 {
-	std::lock_guard<std::mutex> lock(_mutex);
-	_known.insert(addr);
+	Observer obs;
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		if (_known.insert(addr).second)
+			obs = _on_discovered;
+	}
+	if (obs)
+		obs(addr);
 }
 
 void PeerRegistry::addConnected(const std::string& addr, std::shared_ptr<NodeSession> session)
 {
-	std::lock_guard<std::mutex> lock(_mutex);
-	_known.insert(addr);
-	_connected[addr] = std::move(session);
+	Observer obs;
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		if (_known.insert(addr).second)
+			obs = _on_discovered;
+		_connected[addr] = std::move(session);
+	}
+	if (obs)
+		obs(addr);
 }
 
 void PeerRegistry::removeConnected(const std::string& addr)
 {
 	std::lock_guard<std::mutex> lock(_mutex);
 	_connected.erase(addr);
+}
+
+void PeerRegistry::setOnDiscovered(Observer obs)
+{
+	std::lock_guard<std::mutex> lock(_mutex);
+	_on_discovered = std::move(obs);
 }
 
 bool PeerRegistry::isKnown(const std::string& addr) const

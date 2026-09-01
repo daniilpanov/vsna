@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -14,6 +15,8 @@ class NodeSession;
 // and from the UI.
 class PeerRegistry {
   public:
+	using Observer = std::function<void(const std::string&)>;
+
 	// Add an address to the set of known peers.
 	void addKnown(const std::string& addr);
 
@@ -22,6 +25,9 @@ class PeerRegistry {
 
 	// Drop a peer from the connected set (it stays known).
 	void removeConnected(const std::string& addr);
+
+	// Called (outside the internal lock) whenever a brand-new peer becomes known.
+	void setOnDiscovered(Observer obs);
 
 	bool isKnown(const std::string& addr) const;
 	bool isConnected(const std::string& addr) const;
@@ -35,4 +41,5 @@ class PeerRegistry {
 	mutable std::mutex _mutex;
 	std::set<std::string> _known;
 	std::unordered_map<std::string, std::shared_ptr<NodeSession>> _connected;
+	Observer _on_discovered;
 };

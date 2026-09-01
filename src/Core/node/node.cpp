@@ -67,8 +67,28 @@ void Node::start()
 void Node::connect(const std::string& host, const std::string& port)
 {
 	auto session = std::make_shared<NodeSession>(*this, _io_context);
-	_sessions.push_back(session);
+	{
+		std::lock_guard<std::mutex> lock(_sessions_mutex);
+		_sessions.push_back(session);
+	}
 	session->dial(host, port);
+}
+
+void Node::addPeer(const std::string& host, const std::string& port)
+{
+	_peers.addKnown(host + ":" + port);
+}
+
+void Node::connectToAllKnown()
+{
+	for (const auto& addr : _peers.known())
+	{
+		if (_peers.isConnected(addr))
+			continue;
+		auto parts = split(addr, ":");
+		if (parts.size() == 2L)
+			connect(parts[0], parts[1]);
+	}
 }
 
 void Node::print() const
@@ -112,7 +132,10 @@ void Node::on_accept(beast::error_code ec, tcp::socket socket)
 		          << socket.remote_endpoint().port() << '\n';
 
 		auto session = std::make_shared<NodeSession>(*this, _io_context);
-		_sessions.push_back(session);
+		{
+			std::lock_guard<std::mutex> lock(_sessions_mutex);
+			_sessions.push_back(session);
+		}
 		session->accept(std::move(socket));
 	}
 

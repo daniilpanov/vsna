@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -50,12 +51,25 @@ class Node : public std::enable_shared_from_this<Node> {
 		return _peers;
 	}
 
+	// Notify the caller whenever a brand-new peer becomes known.
+	void setOnPeerDiscovered(PeerRegistry::Observer obs)
+	{
+		_peers.setOnDiscovered(std::move(obs));
+	}
+
+	// Manually add a peer to the known set without dialing it.
+	void addPeer(const std::string& host, const std::string& port);
+
+	// Dial every known peer that is not already connected.
+	void connectToAllKnown();
+
   private:
 	Config _config;
 	PeerRegistry _peers;
 	boost::asio::io_context _io_context;
 	tcp::acceptor _acceptor;
 	std::vector<std::thread> _threads;
+	std::mutex _sessions_mutex;
 	std::vector<std::shared_ptr<NodeSession>> _sessions;
 
 	void setup_acceptor();
