@@ -17,6 +17,7 @@ enum class MessageType {
 	CommitAck,
 	Abort,
 	Status,
+	StatusAck,
 };
 
 // Wire-level message envelope. Every frame exchanged between nodes is a JSON
@@ -39,7 +40,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MessageType, { { MessageType::Hello, "hello" },
                                             { MessageType::Commit, "commit" },
                                             { MessageType::CommitAck, "commit_ack" },
                                             { MessageType::Abort, "abort" },
-                                            { MessageType::Status, "status" } })
+                                            { MessageType::Status, "status" },
+                                            { MessageType::StatusAck, "status_ack" } })
 
 inline json Message::toJson() const
 {

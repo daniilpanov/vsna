@@ -134,13 +134,13 @@ void NodeSession::setup_hello()
 {
 	_handlers[HELLO_TX] = [this](const Message& msg) { on_hello(msg); };
 
-	// Route transaction-claim messages to the transaction manager. Any frame
-	// that reaches this default handler without its own transaction handler is
-	// either a claim (new incoming transfer) or something unexpected.
+	// Route transaction-claim/status frames to the transaction manager. Any
+	// frame that reaches this default handler without its own transaction
+	// handler is either a claim/status (transfer protocol) or unexpected.
 	onMessage([this](const Message& msg) {
-		if (msg.type == MessageType::Claim)
+		if (msg.type == MessageType::Claim || msg.type == MessageType::Status)
 		{
-			txn()->handleClaim(msg);
+			txn()->handleDefault(msg);
 			return;
 		}
 		std::cout << "[~] Unhandled message (type=" << json(msg.type).get<std::string>()
