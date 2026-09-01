@@ -3,6 +3,7 @@
 #include <boost/beast/websocket.hpp>
 
 #include "message.h"
+#include "node.h"
 
 NodeSession::NodeSession(Node& node, boost::asio::io_context& ioc)
     : _node(node), _ioc(ioc), _resolver(asio::make_strand(ioc)), _ws(asio::make_strand(ioc))
@@ -10,6 +11,10 @@ NodeSession::NodeSession(Node& node, boost::asio::io_context& ioc)
 
 void NodeSession::accept(tcp::socket socket)
 {
+	_remote = socket.remote_endpoint().address().to_string() + ":"
+	          + std::to_string(socket.remote_endpoint().port());
+	setup_hello();
+
 	// Wrap the accepted socket and open the websocket stream.
 	_ws.next_layer().socket() = std::move(socket);
 
@@ -29,6 +34,8 @@ void NodeSession::dial(const std::string& host, const std::string& port)
 {
 	_host = host;
 	_port = port;
+	_remote = host + ":" + port;
+	setup_hello();
 
 	_resolver.async_resolve(
 	    host, port, beast::bind_front_handler(&NodeSession::on_resolve, shared_from_this()));
@@ -80,6 +87,7 @@ void NodeSession::on_accept(beast::error_code ec)
 		return fail(ec, "accept");
 
 	do_read();
+	send_hello();
 }
 
 void NodeSession::on_resolve(beast::error_code ec, tcp::resolver::results_type results)
@@ -118,6 +126,38 @@ void NodeSession::on_handshake(beast::error_code ec)
 		return fail(ec, "handshake");
 
 	do_read();
+	send_hello();
+}
+
+void NodeSession::setup_hello()
+{
+	_handlers[HELLO_TX] = [this](const Message& msg) { on_hello(msg); };
+}
+
+void NodeSession::send_hello()
+{
+	Message hello;
+	hello.type = MessageType::Hello;
+	hello.tx_id = HELLO_TX;
+	hello.payload = { { "known_peers", _node.peers().known() } };
+	send(hello);
+}
+
+void NodeSession::on_hello(const Message& msg)
+{
+	// The remote peer is both connected and known now.
+	_node.peers().addConnected(_remote, shared_from_this());
+
+	// Merge the acquaintances announced by the peer (transitive discovery).
+	if (!msg.payload.contains("known_peers") || !msg.payload["known_peers"].is_array())
+		return;
+	std::string self = _node.getConfig().getAddr().toString();
+	for (const auto& p : msg.payload["known_peers"])
+	{
+		std::string addr = p.get<std::string>();
+		if (addr != self)
+			_node.peers().addKnown(addr);
+	}
 }
 
 void NodeSession::do_read()
@@ -130,10 +170,16 @@ void NodeSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
 	boost::ignore_unused(bytes_transferred);
 
 	if (ec == websocket::error::closed)
+	{
+		_node.peers().removeConnected(_remote);
 		return;
+	}
 
 	if (ec)
+	{
+		_node.peers().removeConnected(_remote);
 		return fail(ec, "read");
+	}
 
 	// Deserialize the JSON frame into a message envelope and route it.
 	json j = json::parse(beast::buffers_to_string(_buffer.data()), nullptr, false);

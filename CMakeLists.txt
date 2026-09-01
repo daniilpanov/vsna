@@ -53,7 +53,8 @@ target_link_libraries(utils PUBLIC Boost::headers)
 
 # Core node (symmetric peer) + UI
 add_library(node STATIC ${CORE_DIR}/node/node.cpp
-                        ${CORE_DIR}/node/session.cpp)
+                        ${CORE_DIR}/node/session.cpp
+                        ${CORE_DIR}/node/peer_registry.cpp)
 target_link_libraries(node PUBLIC utils)
 target_include_directories(node PUBLIC
     ${CORE_DIR}/node

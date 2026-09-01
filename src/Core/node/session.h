@@ -21,6 +21,9 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
   public:
 	using Handler = std::function<void(const Message&)>;
 
+	// Reserved id for control messages (e.g. hello) not tied to a transaction.
+	static constexpr uint64_t HELLO_TX{ 0 };
+
 	explicit NodeSession(Node& node, boost::asio::io_context& ioc);
 
 	// Server direction: a socket accepted by the acceptor.
@@ -47,6 +50,7 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	beast::flat_buffer _buffer;
 	std::string _host;
 	std::string _port;
+	std::string _remote;
 
 	std::mutex _write_mutex;
 	std::deque<Message> _write_queue;
@@ -56,6 +60,9 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	std::unordered_map<uint64_t, Handler> _handlers;
 	Handler _default_handler;
 
+	void setup_hello();
+	void send_hello();
+	void on_hello(const Message& msg);
 	void do_read();
 	void do_write_next();
 	void route(const Message& msg);

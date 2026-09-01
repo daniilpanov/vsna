@@ -5,6 +5,7 @@
 
 #include "config.h"
 #include "helper.h"
+#include "peer_registry.h"
 #include "session.h"
 
 // A symmetric peer node. Unlike the old split server/client, a single Node both
@@ -43,8 +44,15 @@ class Node : public std::enable_shared_from_this<Node> {
 	// Print the node's local share path (UI helper).
 	void myPath() const;
 
+	// Registry of known / connected peers.
+	PeerRegistry& peers()
+	{
+		return _peers;
+	}
+
   private:
 	Config _config;
+	PeerRegistry _peers;
 	boost::asio::io_context _io_context;
 	tcp::acceptor _acceptor;
 	std::vector<std::thread> _threads;
