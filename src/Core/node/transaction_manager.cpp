@@ -1,5 +1,6 @@
 #include "transaction_manager.h"
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 
@@ -8,6 +9,7 @@
 #include "base64.h"
 #include "node.h"
 #include "session.h"
+#include "zstd_compressor.h"
 
 namespace {
 // Staging directory (relative to the node share path) for in-flight transfers.
@@ -42,7 +44,9 @@ void TransactionManager::do_sendFile(const std::string& localPath)
 
 	uint64_t txId = _nextId++;
 	_session->onTx(txId, [this, txId](const Message& msg) { handleReply(txId, msg); });
-	_outgoing.emplace(txId, Outgoing{ txId, localPath, total, 0 });
+	auto ts = std::chrono::steady_clock::now();
+	_outgoing.emplace(txId,
+	                  Outgoing{ txId, localPath, total, 0, zstd_comp::kDefaultLevel, ts, {} });
 
 	// Ask the peer how much of this file it already staged (resume support),
 	// then claim and resume from that offset.
@@ -75,10 +79,22 @@ void TransactionManager::sendChunk(Outgoing& tx)
 		in.read(buf.data(), static_cast<std::streamsize>(len));
 	}
 
+	// Pre-compress the chunk (best-effort). If zstd does not make it smaller we
+	// send the raw bytes instead.
+	auto c0 = std::chrono::steady_clock::now();
+	std::string comp;
+	bool compressed = zstd_comp::compress(buf, comp, tx.level);
+	auto c1 = std::chrono::steady_clock::now();
+	const std::string& wire = compressed ? comp : buf;
+	tx.lastCompressTime = std::chrono::duration_cast<std::chrono::microseconds>(c1 - c0);
+	tx.lastSendAt = c1;
+
 	Message data;
 	data.type = MessageType::Data;
 	data.tx_id = tx.txId;
-	data.payload = { { "offset", tx.nextOffset }, { "data", base64::encode(buf) } };
+	data.payload = { { "offset", tx.nextOffset },
+		             { "data", base64::encode(wire) },
+		             { "compressed", compressed } };
 	_session->send(data);
 }
 
@@ -118,6 +134,25 @@ void TransactionManager::handleReply(uint64_t txId, const Message& msg)
 			return;
 		}
 		tx.nextOffset = msg.payload.value("offset", tx.nextOffset);
+
+		// Adapt the compression level toward the point where compressing a
+		// chunk and transferring that chunk take about the same time. If
+		// compression dominates we are CPU-bound and step the level down; if
+		// the transfer dominates we are network-bound and step it up.
+		auto delta = std::chrono::steady_clock::now() - tx.lastSendAt;
+		auto transferTime = std::chrono::duration_cast<std::chrono::microseconds>(delta);
+		auto cp = tx.lastCompressTime;
+		if (transferTime.count() > 0)
+		{
+			constexpr int64_t kMarginMicros = 3000;
+			if (cp.count() > transferTime.count() + kMarginMicros
+			    && tx.level > zstd_comp::kMinLevel)
+				--tx.level;
+			else if (cp.count() + kMarginMicros < transferTime.count()
+			         && tx.level < zstd_comp::kMaxLevel)
+				++tx.level;
+		}
+
 		sendChunk(tx);
 		break;
 	}
@@ -237,7 +272,17 @@ void TransactionManager::handleData(uint64_t txId, const Message& msg)
 		return;
 	}
 
-	const std::string bytes = base64::decode(msg.payload.value("data", ""));
+	std::string bytes = base64::decode(msg.payload.value("data", ""));
+	if (msg.payload.value("compressed", false))
+	{
+		std::string plain;
+		if (!zstd_comp::decompress(bytes, plain))
+		{
+			reply(txId, MessageType::DataAck, { { "ok", false } });
+			return;
+		}
+		bytes = std::move(plain);
+	}
 	it->second.stream.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
 	it->second.stream.flush();
 

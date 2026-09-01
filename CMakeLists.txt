@@ -24,6 +24,8 @@ set(UI_DIR       ${SRC_DIR}/UI)
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 find_package(CLI11 CONFIG REQUIRED)
+find_package(zstd CONFIG REQUIRED)
+find_package(zstd CONFIG REQUIRED)
 
 if (Boost_FOUND)
     if (WIN32)
@@ -38,11 +40,13 @@ endif()
 add_library(utils STATIC ${CORE_DIR}/utils/addr/addr.cpp
                           ${CORE_DIR}/utils/config/config.cpp
                           ${CORE_DIR}/utils/logger/logger.h
-                          ${CORE_DIR}/utils/helper/helper.h)
+                          ${CORE_DIR}/utils/helper/helper.h
+                          ${CORE_DIR}/common/compress/zstd_compressor.cpp)
 target_include_directories(utils PUBLIC
     ${CORE_DIR}/common/types
     ${CORE_DIR}/common/message
     ${CORE_DIR}/common/base64
+    ${CORE_DIR}/common/compress
     ${CORE_DIR}/utils
     ${CORE_DIR}/utils/addr
     ${CORE_DIR}/utils/config
@@ -50,7 +54,7 @@ target_include_directories(utils PUBLIC
     ${CORE_DIR}/utils/helper
 )
 target_include_directories(utils PUBLIC ${Boost_INCLUDE_DIRS})
-target_link_libraries(utils PUBLIC Boost::headers)
+target_link_libraries(utils PUBLIC Boost::headers zstd::libzstd)
 
 # Core node (symmetric peer) + UI
 add_library(node STATIC ${CORE_DIR}/node/node.cpp
