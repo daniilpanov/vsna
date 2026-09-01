@@ -42,6 +42,7 @@ add_library(utils STATIC ${CORE_DIR}/utils/addr/addr.cpp
 target_include_directories(utils PUBLIC
     ${CORE_DIR}/common/types
     ${CORE_DIR}/common/message
+    ${CORE_DIR}/common/base64
     ${CORE_DIR}/utils
     ${CORE_DIR}/utils/addr
     ${CORE_DIR}/utils/config
@@ -54,7 +55,8 @@ target_link_libraries(utils PUBLIC Boost::headers)
 # Core node (symmetric peer) + UI
 add_library(node STATIC ${CORE_DIR}/node/node.cpp
                         ${CORE_DIR}/node/session.cpp
-                        ${CORE_DIR}/node/peer_registry.cpp)
+                        ${CORE_DIR}/node/peer_registry.cpp
+                        ${CORE_DIR}/node/transaction_manager.cpp)
 target_link_libraries(node PUBLIC utils)
 target_include_directories(node PUBLIC
     ${CORE_DIR}/node

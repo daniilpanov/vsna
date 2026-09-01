@@ -11,6 +11,7 @@
 #include "pch.h"
 
 class Node;
+class TransactionManager;
 
 // A persistent symmetric peer session. A single connection stays alive across
 // many messages and multiplexes several transactions at once, distinguished by
@@ -42,6 +43,16 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	// Register a default handler for messages whose tx_id has no handler.
 	void onMessage(Handler handler);
 
+	// Transaction manager for this connection (created lazily). Owns the
+	// receive-side claim handler and drives outgoing transfers.
+	std::shared_ptr<TransactionManager> txn();
+
+	// The strand serializing all work on this connection.
+	boost::asio::any_io_executor strand()
+	{
+		return _ws.get_executor();
+	}
+
   private:
 	Node& _node;
 	boost::asio::io_context& _ioc;
@@ -59,6 +70,8 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 
 	std::unordered_map<uint64_t, Handler> _handlers;
 	Handler _default_handler;
+
+	std::shared_ptr<TransactionManager> _txn;
 
 	void setup_hello();
 	void send_hello();

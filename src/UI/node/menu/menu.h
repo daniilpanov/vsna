@@ -107,6 +107,35 @@ class ConnectAllCommand : public MenuItem {
 	};
 };
 
+class SendCommand : public MenuItem {
+  public:
+	SendCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	{}
+	bool handle(const std::vector<std::string>& args) override
+	{
+		// send <peer addr> <path>  -> to a specific connected peer
+		// send <path>              -> to the first connected peer
+		std::string peer;
+		std::string path;
+		if (args.size() == 2)
+		{
+			peer = args[0];
+			path = args[1];
+		}
+		else if (args.size() == 1)
+		{
+			path = args[0];
+		}
+		else
+		{
+			std::cerr << "[!] Usage: " << _info.usage << std::endl;
+			return false;
+		}
+		_node.sendFile(peer, path);
+		return false;
+	};
+};
+
 class MyPathCommand : public MenuItem {
   public:
 	MyPathCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)

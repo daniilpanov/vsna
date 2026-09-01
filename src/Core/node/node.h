@@ -63,6 +63,11 @@ class Node : public std::enable_shared_from_this<Node> {
 	// Dial every known peer that is not already connected.
 	void connectToAllKnown();
 
+	// Start a transactional transfer of a local file to a connected peer. If
+	// peerAddr is empty or not a live connection, the first connected peer is
+	// used. The file arrives either fully committed or is rolled back.
+	void sendFile(const std::string& peerAddr, const std::string& localPath);
+
   private:
 	Config _config;
 	PeerRegistry _peers;

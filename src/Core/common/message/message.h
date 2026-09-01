@@ -10,8 +10,11 @@ using json = nlohmann::json;
 enum class MessageType {
 	Hello,
 	Claim,
+	ClaimAck,
 	Data,
+	DataAck,
 	Commit,
+	CommitAck,
 	Abort,
 	Status,
 };
@@ -30,8 +33,11 @@ struct Message
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MessageType, { { MessageType::Hello, "hello" },
                                             { MessageType::Claim, "claim" },
+                                            { MessageType::ClaimAck, "claim_ack" },
                                             { MessageType::Data, "data" },
+                                            { MessageType::DataAck, "data_ack" },
                                             { MessageType::Commit, "commit" },
+                                            { MessageType::CommitAck, "commit_ack" },
                                             { MessageType::Abort, "abort" },
                                             { MessageType::Status, "status" } })
 
