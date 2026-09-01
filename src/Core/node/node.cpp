@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+#include "transaction_manager.h"
+
 Node::Node() : _io_context(), _acceptor(_io_context)
 {}
 
@@ -89,6 +91,19 @@ void Node::connectToAllKnown()
 		if (parts.size() == 2L)
 			connect(parts[0], parts[1]);
 	}
+}
+
+void Node::sendFile(const std::string& peerAddr, const std::string& localPath)
+{
+	std::shared_ptr<NodeSession> session = _peers.sessionFor(peerAddr);
+	if (!session)
+		session = _peers.firstSession();
+	if (!session)
+	{
+		std::cerr << "[!] No connected peer to send to\n";
+		return;
+	}
+	session->txn()->sendFile(localPath);
 }
 
 void Node::print() const

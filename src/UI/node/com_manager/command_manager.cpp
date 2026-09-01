@@ -19,6 +19,8 @@ void CommandManager::initCommands()
 	addCommand<AddCommand>("add", "Add a peer manually", "[ip:port]");
 	addCommand<PeersCommand>("peers", "List known/connected peers", "");
 	addCommand<ConnectAllCommand>("connect_all", "Connect to all known peers", "");
+	addCommand<SendCommand>("send", "Send a file via transactional transfer",
+	                        "[peer] [path] or [path]");
 }
 
 bool CommandManager::execute(const std::string& name, std::vector<std::string> args)

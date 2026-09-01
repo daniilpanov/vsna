@@ -4,6 +4,7 @@
 
 #include "message.h"
 #include "node.h"
+#include "transaction_manager.h"
 
 NodeSession::NodeSession(Node& node, boost::asio::io_context& ioc)
     : _node(node), _ioc(ioc), _resolver(asio::make_strand(ioc)), _ws(asio::make_strand(ioc))
@@ -132,6 +133,19 @@ void NodeSession::on_handshake(beast::error_code ec)
 void NodeSession::setup_hello()
 {
 	_handlers[HELLO_TX] = [this](const Message& msg) { on_hello(msg); };
+
+	// Route transaction-claim messages to the transaction manager. Any frame
+	// that reaches this default handler without its own transaction handler is
+	// either a claim (new incoming transfer) or something unexpected.
+	onMessage([this](const Message& msg) {
+		if (msg.type == MessageType::Claim)
+		{
+			txn()->handleClaim(msg);
+			return;
+		}
+		std::cout << "[~] Unhandled message (type=" << json(msg.type).get<std::string>()
+		          << ", tx_id=" << msg.tx_id << ")\n";
+	});
 }
 
 void NodeSession::send_hello()
@@ -139,16 +153,19 @@ void NodeSession::send_hello()
 	Message hello;
 	hello.type = MessageType::Hello;
 	hello.tx_id = HELLO_TX;
-	hello.payload = { { "known_peers", _node.peers().known() } };
+	hello.payload = { { "me", _node.getConfig().getAddr().toString() },
+		              { "known_peers", _node.peers().known() } };
 	send(hello);
 }
 
 void NodeSession::on_hello(const Message& msg)
 {
-	// The remote peer is both connected and known now.
+	// The remote peer both announces its listener address and lists the peers
+	// it already knows (transitive discovery).
+	const std::string me = msg.payload.value("me", _remote);
+	_remote = me;
 	_node.peers().addConnected(_remote, shared_from_this());
 
-	// Merge the acquaintances announced by the peer (transitive discovery).
 	if (!msg.payload.contains("known_peers") || !msg.payload["known_peers"].is_array())
 		return;
 	std::string self = _node.getConfig().getAddr().toString();
@@ -158,6 +175,13 @@ void NodeSession::on_hello(const Message& msg)
 		if (addr != self)
 			_node.peers().addKnown(addr);
 	}
+}
+
+std::shared_ptr<TransactionManager> NodeSession::txn()
+{
+	if (!_txn)
+		_txn = std::make_shared<TransactionManager>(_node, shared_from_this());
+	return _txn;
 }
 
 void NodeSession::do_read()

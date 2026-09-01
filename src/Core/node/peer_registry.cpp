@@ -78,3 +78,18 @@ std::size_t PeerRegistry::connectedCount() const
 	std::lock_guard<std::mutex> lock(_mutex);
 	return _connected.size();
 }
+
+std::shared_ptr<NodeSession> PeerRegistry::sessionFor(const std::string& addr) const
+{
+	std::lock_guard<std::mutex> lock(_mutex);
+	auto it = _connected.find(addr);
+	return it != _connected.end() ? it->second : nullptr;
+}
+
+std::shared_ptr<NodeSession> PeerRegistry::firstSession() const
+{
+	std::lock_guard<std::mutex> lock(_mutex);
+	if (_connected.empty())
+		return nullptr;
+	return _connected.begin()->second;
+}

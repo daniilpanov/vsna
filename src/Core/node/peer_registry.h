@@ -32,6 +32,10 @@ class PeerRegistry {
 	bool isKnown(const std::string& addr) const;
 	bool isConnected(const std::string& addr) const;
 
+	// Look up the live session for a connected peer address (may be null).
+	std::shared_ptr<NodeSession> sessionFor(const std::string& addr) const;
+	std::shared_ptr<NodeSession> firstSession() const;
+
 	std::vector<std::string> known() const;
 	std::vector<std::string> connected() const;
 	std::size_t knownCount() const;
