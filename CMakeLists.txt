@@ -68,16 +68,29 @@ target_include_directories(node PUBLIC
     ${CORE_DIR}/api
     ${CORE_DIR}/common/types)
 
-add_library(ui STATIC ${UI_DIR}/node/node_ui.cpp
-                      ${UI_DIR}/node/menu/menu.cpp
-                      ${UI_DIR}/node/com_manager/command_manager.cpp)
-target_link_libraries(ui PUBLIC node utils CLI11::CLI11)
-target_include_directories(ui PUBLIC
-    ${UI_DIR}/node
-    ${UI_DIR}/node/menu
-    ${UI_DIR}/node/com_manager)
+# Shared UI foundation used by every front-end (cli, repl, web).
+add_library(libui STATIC ${UI_DIR}/libui/ui_controller.cpp
+                         ${UI_DIR}/libui/menu/menu.cpp
+                         ${UI_DIR}/libui/command_manager.cpp)
+target_link_libraries(libui PUBLIC node utils CLI11::CLI11)
+target_include_directories(libui PUBLIC
+    ${UI_DIR}/libui
+    ${UI_DIR}/libui/menu)
 
-add_executable(vsna ${SRC_DIR}/main.cpp)
+# Front-ends: cli and repl are separate binaries, each owning a NodeApi via a
+# UiController from libui.
+add_executable(vsna_repl ${UI_DIR}/repl/repl_main.cpp
+                         ${UI_DIR}/repl/repl_ui.cpp)
+set_target_properties(vsna_repl PROPERTIES OUTPUT_NAME vsna_repl)
+target_link_libraries(vsna_repl PRIVATE libui node utils)
+
+add_executable(vsna_cli ${UI_DIR}/cli/cli_main.cpp
+                        ${UI_DIR}/cli/cli_ui.cpp)
+set_target_properties(vsna_cli PROPERTIES OUTPUT_NAME vsna_cli)
+target_link_libraries(vsna_cli PRIVATE libui node utils)
+
+# Backwards-compatible alias for the interactive front-end.
+add_executable(vsna ${UI_DIR}/repl/repl_main.cpp
+                    ${UI_DIR}/repl/repl_ui.cpp)
 set_target_properties(vsna PROPERTIES OUTPUT_NAME vsna)
-target_link_libraries(vsna PRIVATE ui node utils)
-target_include_directories(vsna PRIVATE ${UI_DIR}/node)
+target_link_libraries(vsna PRIVATE libui node utils)
