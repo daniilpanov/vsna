@@ -1,6 +1,13 @@
-#include "node_ui.h"
+#include "ui_controller.h"
 
-std::vector<std::string> NodeUI::CLIParse(int argc, char **argv)
+#include <boost/asio.hpp>
+#include <CLI/CLI.hpp>
+#include <filesystem>
+#include <iostream>
+
+#include "helper.h"
+
+std::vector<std::string> UiController::parse(int argc, char **argv)
 {
 	CLI::App app{ "VSNA Node" };
 	app.allow_extras();
@@ -63,36 +70,16 @@ std::vector<std::string> NodeUI::CLIParse(int argc, char **argv)
 	return app.remaining();
 }
 
-std::pair<std::string, std::vector<std::string>> NodeUI::parseArgs(const std::string& input)
+std::pair<std::string, std::vector<std::string>> UiController::splitLine(const std::string& input)
 {
 	std::vector<std::string> args = split(input);
+	if (args.empty())
+		return {};
 	return { args[0], std::vector<std::string>(args.begin() + 1, args.end()) };
 }
 
-void NodeUI::repl()
+void UiController::start()
 {
-	std::cout << _api.describe() << std::endl;
-
-	std::string input;
-	while (true)
-	{
-		std::cout << "> ";
-		std::getline(std::cin, input);
-		auto [name, cmdArgs] = parseArgs(input);
-
-		if (name.empty())
-			continue;
-
-		if (_commandManager.execute(name, cmdArgs))
-			break;
-	}
-
-	_api.stop();
-}
-
-void NodeUI::run(int argc, char **argv)
-{
-	auto extras = this->CLIParse(argc, argv);
 	_commandManager.initCommands();
 
 	// Notify (and offer to connect to) every newly discovered peer.
@@ -113,15 +100,9 @@ void NodeUI::run(int argc, char **argv)
 		else
 			std::cerr << "[!] Ignoring bad connect target: " << addr << std::endl;
 	}
+}
 
-	if (!extras.empty())
-	{
-		std::string name = extras[0];
-		std::vector<std::string> cmdArgs(extras.begin() + 1, extras.end());
-		_commandManager.execute(name, cmdArgs);
-		_api.stop();
-		return;
-	}
-
-	repl();
+void UiController::stop()
+{
+	_api.stop();
 }
