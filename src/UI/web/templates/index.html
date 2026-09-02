@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VSNA Web Client</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>VSNA Web Client</h1>
+
+  <section id="info">
+    <h2>Node</h2>
+    <pre id="describe">…</pre>
+  </section>
+
+  <section id="peers">
+    <h2>Peers</h2>
+    <ul id="peer-list"></ul>
+    <form id="add-peer">
+      <input id="peer-addr" placeholder="127.0.0.1:5555" required>
+      <button type="submit">Add peer</button>
+      <button type="button" id="connect-all">Connect to all</button>
+    </form>
+    <form id="connect-peer">
+      <input id="connect-addr" placeholder="127.0.0.1:5555" required>
+      <button type="submit">Connect</button>
+    </form>
+  </section>
+
+  <section id="send">
+    <h2>Send file</h2>
+    <form id="send-form">
+      <input id="send-path" placeholder="/path/to/file.bin" required>
+      <input id="send-peer" placeholder="peer addr (optional)">
+      <button type="submit">Send</button>
+    </form>
+    <pre id="send-status">Status: idle</pre>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

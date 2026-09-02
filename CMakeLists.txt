@@ -94,3 +94,10 @@ add_executable(vsna ${UI_DIR}/repl/repl_main.cpp
                     ${UI_DIR}/repl/repl_ui.cpp)
 set_target_properties(vsna PROPERTIES OUTPUT_NAME vsna)
 target_link_libraries(vsna PRIVATE libui node utils)
+
+# Web front-end: isolated HTTP layer on top of libui (own NodeApi + Beast HTTP).
+add_executable(vsna_web ${UI_DIR}/web/web_main.cpp
+                        ${UI_DIR}/web/web_client.cpp)
+set_target_properties(vsna_web PROPERTIES OUTPUT_NAME vsna_web)
+target_link_libraries(vsna_web PRIVATE libui node utils)
+include_directories(vsna_web PRIVATE ${UI_DIR}/web)

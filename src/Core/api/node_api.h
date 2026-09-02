@@ -21,6 +21,7 @@ class NodeApi {
 
 	// Human-readable description of the active configuration.
 	std::string describe() const;
+	std::string addr() const;
 	std::string path() const;
 
 	void start();

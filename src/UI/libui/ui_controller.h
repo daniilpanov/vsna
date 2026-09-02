@@ -33,6 +33,10 @@ class UiController {
 	{
 		return _commandManager;
 	}
+	NodeApi& api()
+	{
+		return _api;
+	}
 	const NodeApi& api() const
 	{
 		return _api;
