@@ -2,20 +2,19 @@
 #include <boost/asio.hpp>
 #include <CLI/CLI.hpp>
 #include <iostream>
-#include <memory>
 #include <string>
 #include <vector>
 
 #include "command_manager.h"
-#include "config.h"
-#include "node.h"
+#include "helper.h"
+#include "node_api.h"
 
 class NodeUI {
-	std::shared_ptr<Node> _node{ std::make_shared<Node>() };
+	NodeApi _api;
 	CommandManager _commandManager;
 
   public:
-	NodeUI() : _commandManager(*_node)
+	NodeUI() : _commandManager(_api)
 	{}
 	std::vector<std::string> CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);

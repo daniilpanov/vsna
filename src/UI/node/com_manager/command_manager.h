@@ -8,7 +8,7 @@
 
 class CommandManager {
   public:
-	CommandManager(Node& node) : _node(node) {};
+	CommandManager(NodeApi& api) : _api(api) {};
 	void initCommands();
 	bool execute(const std::string& name, std::vector<std::string> args);
 	std::vector<CommandInfo> listCommands() const;
@@ -19,5 +19,5 @@ class CommandManager {
 	                Args&&...args);
 
 	std::unordered_map<std::string, std::unique_ptr<MenuItem>> _commands;
-	Node& _node;
+	NodeApi& _api;
 };

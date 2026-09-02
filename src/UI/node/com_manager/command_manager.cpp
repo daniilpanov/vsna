@@ -5,7 +5,7 @@ void CommandManager::addCommand(const std::string& name, const std::string& desc
                                 const std::string& usage, Args&&...args)
 {
 	_commands[name]
-	    = std::make_unique<T>(_node, CommandInfo{ name, desc, usage }, std::forward<Args>(args)...);
+	    = std::make_unique<T>(_api, CommandInfo{ name, desc, usage }, std::forward<Args>(args)...);
 }
 
 // Write commands in lower case!

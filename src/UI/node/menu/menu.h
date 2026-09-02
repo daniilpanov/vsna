@@ -5,8 +5,8 @@
 #include <string_view>
 #include <vector>
 
-#include "config.h"
-#include "node.h"
+#include "helper.h"
+#include "node_api.h"
 
 struct CommandInfo
 {
@@ -17,20 +17,20 @@ struct CommandInfo
 
 class MenuItem {
   protected:
-	Node& _node;
+	NodeApi& _api;
 
   public:
 	const CommandInfo _info;
 
 	virtual ~MenuItem() = default;
-	MenuItem(Node& node, const CommandInfo& info) : _node(node), _info(info)
+	MenuItem(NodeApi& api, const CommandInfo& info) : _api(api), _info(info)
 	{}
 	virtual bool handle(const std::vector<std::string>&) = 0;
 };
 
 class ConnectCommand : public MenuItem {
   public:
-	ConnectCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	ConnectCommand(NodeApi& api, const CommandInfo& info) : MenuItem(api, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
@@ -45,14 +45,14 @@ class ConnectCommand : public MenuItem {
 			std::cerr << "[!] Usage: " << _info.usage << std::endl;
 			return false;
 		}
-		_node.connect(parts[0], parts[1]);
+		_api.connect(parts[0], parts[1]);
 		return false;
 	};
 };
 
 class AddCommand : public MenuItem {
   public:
-	AddCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	AddCommand(NodeApi& api, const CommandInfo& info) : MenuItem(api, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
@@ -67,7 +67,7 @@ class AddCommand : public MenuItem {
 			std::cerr << "[!] Usage: " << _info.usage << std::endl;
 			return false;
 		}
-		_node.addPeer(parts[0], parts[1]);
+		_api.addPeer(parts[0], parts[1]);
 		std::cout << "[~] Peer added: " << args[0] << std::endl;
 		return false;
 	};
@@ -75,12 +75,12 @@ class AddCommand : public MenuItem {
 
 class PeersCommand : public MenuItem {
   public:
-	PeersCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	PeersCommand(NodeApi& api, const CommandInfo& info) : MenuItem(api, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
-		auto known = _node.peers().known();
-		auto connected = _node.peers().connected();
+		auto known = _api.knownPeers();
+		auto connected = _api.connectedPeers();
 		if (known.empty())
 		{
 			std::cout << "[=] No known peers.\n";
@@ -98,18 +98,18 @@ class PeersCommand : public MenuItem {
 
 class ConnectAllCommand : public MenuItem {
   public:
-	ConnectAllCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	ConnectAllCommand(NodeApi& api, const CommandInfo& info) : MenuItem(api, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
-		_node.connectToAllKnown();
+		_api.connectToAllKnown();
 		return false;
 	};
 };
 
 class SendCommand : public MenuItem {
   public:
-	SendCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	SendCommand(NodeApi& api, const CommandInfo& info) : MenuItem(api, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
@@ -131,36 +131,36 @@ class SendCommand : public MenuItem {
 			std::cerr << "[!] Usage: " << _info.usage << std::endl;
 			return false;
 		}
-		_node.sendFile(peer, path);
+		_api.sendFile(peer, path);
 		return false;
 	};
 };
 
 class MyPathCommand : public MenuItem {
   public:
-	MyPathCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	MyPathCommand(NodeApi& api, const CommandInfo& info) : MenuItem(api, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
-		_node.myPath();
+		std::cout << "[=] Node path: " << _api.path() << std::endl;
 		return false;
 	};
 };
 
 class PrintCommand : public MenuItem {
   public:
-	PrintCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	PrintCommand(NodeApi& api, const CommandInfo& info) : MenuItem(api, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
-		_node.print();
+		std::cout << _api.describe() << std::endl;
 		return false;
 	};
 };
 
 class ExitCommand : public MenuItem {
   public:
-	ExitCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	ExitCommand(NodeApi& api, const CommandInfo& info) : MenuItem(api, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
@@ -175,8 +175,8 @@ class HelpCommand : public MenuItem {
 	CommandManager& _manager;
 
   public:
-	HelpCommand(Node& node, const CommandInfo& info, CommandManager& manager)
-	    : MenuItem(node, info), _manager(manager)
+	HelpCommand(NodeApi& api, const CommandInfo& info, CommandManager& manager)
+	    : MenuItem(api, info), _manager(manager)
 	{}
 	bool handle(const std::vector<std::string>& args) override;
 };
