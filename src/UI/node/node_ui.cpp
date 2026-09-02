@@ -9,11 +9,13 @@ std::vector<std::string> NodeUI::CLIParse(int argc, char **argv)
 	std::string port{ "5555" };
 	std::string path{ "/" };
 	std::string configFile;
+	std::vector<std::string> connects;
 
 	app.add_option("-i,--ip", ip, "IP address of the listener socket");
 	app.add_option("-p,--port", port, "Port of the listener socket");
 	app.add_option("-d,--dir", path, "Node path to store and serve files");
 	app.add_option("-c,--config", configFile, "Path to the config file");
+	app.add_option("--connect", connects, "Connect to a peer at startup (repeatable)");
 
 	try
 	{
@@ -55,6 +57,8 @@ std::vector<std::string> NodeUI::CLIParse(int argc, char **argv)
 	{
 		_api.configure(ip, port, path);
 	}
+
+	_startConnects = connects;
 
 	return app.remaining();
 }
@@ -99,6 +103,16 @@ void NodeUI::run(int argc, char **argv)
 
 	// Start listening in the background.
 	_api.start();
+
+	// Optionally connect to peers at startup (multi-instance orchestration).
+	for (const auto& addr : _startConnects)
+	{
+		auto parts = split(addr, ":");
+		if (parts.size() == 2)
+			_api.connect(parts[0], parts[1]);
+		else
+			std::cerr << "[!] Ignoring bad connect target: " << addr << std::endl;
+	}
 
 	if (!extras.empty())
 	{
