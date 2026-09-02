@@ -16,10 +16,10 @@ void CommandManager::initCommands()
 	addCommand<PrintCommand>("print", "Print the node config", "");
 	addCommand<MyPathCommand>("mypath", "Show the node path", "");
 	addCommand<ConnectCommand>("connect", "Connect to a peer", "[ip:port]");
-	addCommand<AddCommand>("add", "Add a peer manually", "[ip:port]");
-	addCommand<PeersCommand>("peers", "List known/connected peers", "");
+	addCommand<AddCommand>("add", "Introduce a peer by address", "[ip:port]");
+	addCommand<PeersCommand>("peers", "List known peers", "");
 	addCommand<ConnectAllCommand>("connect_all", "Connect to all known peers", "");
-	addCommand<SendCommand>("send", "Send a file via transactional transfer",
+	addCommand<SendCommand>("send", "Send a file to a peer or the first connected peer",
 	                        "[peer] [path] or [path]");
 }
 
