@@ -12,6 +12,7 @@
 class NodeUI {
 	NodeApi _api;
 	CommandManager _commandManager;
+	std::vector<std::string> _startConnects;
 
   public:
 	NodeUI() : _commandManager(_api)
