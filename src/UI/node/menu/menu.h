@@ -46,6 +46,7 @@ class ConnectCommand : public MenuItem {
 			return false;
 		}
 		_api.connect(parts[0], parts[1]);
+		std::cout << "[~] Connecting to " << args[0] << std::endl;
 		return false;
 	};
 };
