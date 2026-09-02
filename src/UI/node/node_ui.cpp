@@ -37,7 +37,7 @@ std::vector<std::string> NodeUI::CLIParse(int argc, char **argv)
 		{
 			try
 			{
-				this->_node->setConfig(Config::loadFromFile(configFile));
+				_api.configureFromFile(configFile);
 			}
 			catch (const std::exception& e)
 			{
@@ -53,7 +53,7 @@ std::vector<std::string> NodeUI::CLIParse(int argc, char **argv)
 	}
 	else
 	{
-		this->_node->setConfig(Config(Addr(ip, port), path));
+		_api.configure(ip, port, path);
 	}
 
 	return app.remaining();
@@ -67,7 +67,7 @@ std::pair<std::string, std::vector<std::string>> NodeUI::parseArgs(const std::st
 
 void NodeUI::repl()
 {
-	_node->print();
+	std::cout << _api.describe() << std::endl;
 
 	std::string input;
 	while (true)
@@ -83,7 +83,7 @@ void NodeUI::repl()
 			break;
 	}
 
-	_node->stop();
+	_api.stop();
 }
 
 void NodeUI::run(int argc, char **argv)
@@ -92,20 +92,20 @@ void NodeUI::run(int argc, char **argv)
 	_commandManager.initCommands();
 
 	// Notify (and offer to connect to) every newly discovered peer.
-	_node->setOnPeerDiscovered([](const std::string& addr) {
+	_api.setOnPeerDiscovered([](const std::string& addr) {
 		std::cout << "[+] New peer discovered: " << addr << " — type 'connect " << addr
 		          << "' to connect\n";
 	});
 
 	// Start listening in the background.
-	_node->start();
+	_api.start();
 
 	if (!extras.empty())
 	{
 		std::string name = extras[0];
 		std::vector<std::string> cmdArgs(extras.begin() + 1, extras.end());
 		_commandManager.execute(name, cmdArgs);
-		_node->stop();
+		_api.stop();
 		return;
 	}
 

@@ -60,10 +60,12 @@ target_link_libraries(utils PUBLIC Boost::headers zstd::libzstd)
 add_library(node STATIC ${CORE_DIR}/node/node.cpp
                         ${CORE_DIR}/node/session.cpp
                         ${CORE_DIR}/node/peer_registry.cpp
-                        ${CORE_DIR}/node/transaction_manager.cpp)
+                        ${CORE_DIR}/node/transaction_manager.cpp
+                        ${CORE_DIR}/api/node_api.cpp)
 target_link_libraries(node PUBLIC utils)
 target_include_directories(node PUBLIC
     ${CORE_DIR}/node
+    ${CORE_DIR}/api
     ${CORE_DIR}/common/types)
 
 add_library(ui STATIC ${UI_DIR}/node/node_ui.cpp

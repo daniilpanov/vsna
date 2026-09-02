@@ -39,12 +39,6 @@ class Node : public std::enable_shared_from_this<Node> {
 	// Stop the io_context and all worker threads.
 	void stop();
 
-	// Print the node configuration (UI helper).
-	void print() const;
-
-	// Print the node's local share path (UI helper).
-	void myPath() const;
-
 	// Registry of known / connected peers.
 	PeerRegistry& peers()
 	{

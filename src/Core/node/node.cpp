@@ -106,16 +106,6 @@ void Node::sendFile(const std::string& peerAddr, const std::string& localPath)
 	session->txn()->sendFile(localPath);
 }
 
-void Node::print() const
-{
-	std::cout << _config.toString() << std::endl;
-}
-
-void Node::myPath() const
-{
-	std::cout << "[=] Node path: " << _config.getPath() << std::endl;
-}
-
 void Node::stop()
 {
 	_io_context.stop();
