@@ -35,6 +35,11 @@ std::string NodeApi::path() const
 	return _node->getConfig().getPath();
 }
 
+std::string NodeApi::addr() const
+{
+	return _node->getConfig().getAddr().toString();
+}
+
 void NodeApi::start()
 {
 	_node->start();
