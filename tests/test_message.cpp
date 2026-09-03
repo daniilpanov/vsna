@@ -28,10 +28,10 @@ TEST(Message, RoundTripPreservesFields)
 	const struct
 	{
 		MessageType type;
-		const char* name;
+		const char *name;
 	} cases[] = { { MessageType::Hello, "hello" }, { MessageType::Claim, "claim" },
-	              { MessageType::Data, "data" },    { MessageType::Commit, "commit" },
-	              { MessageType::Abort, "abort" },  { MessageType::Status, "status" } };
+		          { MessageType::Data, "data" },   { MessageType::Commit, "commit" },
+		          { MessageType::Abort, "abort" }, { MessageType::Status, "status" } };
 
 	for (const auto& c : cases)
 	{
@@ -54,7 +54,7 @@ TEST(Message, JsonCarriesStringTypeName)
 // The envelope exposes the three top-level fields.
 TEST(Message, JsonHasEnvelopeFields)
 {
-	Message m = makeMessage(MessageType::Data, 7, json{{ "part", 3 }});
+	Message m = makeMessage(MessageType::Data, 7, json{ { "part", 3 } });
 	json j = m.toJson();
 	ASSERT_TRUE(j.contains("type"));
 	ASSERT_TRUE(j.contains("tx_id"));

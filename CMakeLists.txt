@@ -88,7 +88,7 @@ if(GTest_FOUND)
         ${TEST_DIR}/test_addr.cpp
         ${TEST_DIR}/test_config.cpp
         ${TEST_DIR}/test_message.cpp
-        ${TEST_DIR}/test_node_echo.cpp)
+        ${TEST_DIR}/test_session_routing.cpp)
     target_link_libraries(vsna_tests PRIVATE node utils GTest::gtest_main GTest::gtest)
     target_include_directories(vsna_tests PRIVATE
         ${CORE_DIR}/node
