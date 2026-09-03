@@ -21,7 +21,7 @@ inline std::vector<std::string> split(std::string_view input, std::string_view d
 	std::vector<std::string> result;
 	if (delimiter.empty())
 	{
-		result.push_back(std::string(input));
+		result.emplace_back(input);
 		return result;
 	}
 
@@ -30,12 +30,12 @@ inline std::vector<std::string> split(std::string_view input, std::string_view d
 
 	while (end != std::string::npos)
 	{
-		result.push_back(std::string(input.substr(start, end - start)));
+		result.emplace_back(input.substr(start, end - start));
 		start = end + delimiter.length();
 		end = input.find(delimiter, start);
 	}
 
-	result.push_back(std::string(input.substr(start)));
+	result.emplace_back(input.substr(start));
 	return result;
 }
 
