@@ -13,13 +13,13 @@ class Addr {
 	{
 		return _ip;
 	}
-	const std::string& port() const
+	std::string port() const
 	{
-		return _port;
+		return std::to_string(_portNum);
 	}
 	uint16_t portNum() const
 	{
-		return std::stoi(_port);
+		return _portNum;
 	}
 
 	void setIp(const std::string&);
@@ -27,10 +27,10 @@ class Addr {
 
 	const std::string toString() const
 	{
-		return _ip + ":" + _port;
+		return _ip + ":" + std::to_string(_portNum);
 	}
 
   private:
 	std::string _ip{ "0.0.0.0" };
-	std::string _port{ "5555" };
+	uint16_t _portNum{ 5555 };
 };

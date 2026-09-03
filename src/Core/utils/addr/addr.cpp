@@ -27,6 +27,7 @@ void Addr::setPort(const std::string& port)
 	{
 		throw std::invalid_argument("[!] Port cannot be empty");
 	}
+
 	try
 	{
 		int32_t port_num = std::stoi(port);
@@ -34,7 +35,7 @@ void Addr::setPort(const std::string& port)
 		{
 			throw std::out_of_range("[!] Port out of range (0-65535): " + port);
 		}
-		this->_port = std::to_string(port_num);
+		this->_portNum = static_cast<uint16_t>(port_num);
 	}
 	catch (const std::invalid_argument&)
 	{
