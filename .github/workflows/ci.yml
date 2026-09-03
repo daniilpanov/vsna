@@ -14,11 +14,26 @@ jobs:
           submodules: recursive
 
       - name: Install build dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.0
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.3
         with:
           packages: build-essential g++ cmake ninja-build pkg-config
           version: 1.0
           execute_install_scripts: false
+
+      - name: Get vcpkg submodule commit
+        id: vcpkg-commit
+        run: echo "hash=$(git -C vcpkg rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache vcpkg dependencies
+        id: vcpkg-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            out/vcpkg_installed
+            vcpkg/vcpkg
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}-${{ steps.vcpkg-commit.outputs.hash }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
 
       - name: Configure & build with vcpkg presets
         run: |
