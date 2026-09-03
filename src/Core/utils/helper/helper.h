@@ -54,14 +54,25 @@ inline bool isValidIPv4(const std::string& ipString)
 
 inline std::string join(const std::vector<std::string>& strings, std::string_view delimiter = " ")
 {
-	if (strings.empty())
-		return "";
+	std::string result;
 
-	std::string result = strings[0];
-	for (size_t i = 1; i < strings.size(); ++i)
+	if (strings.empty())
+		return result;
+
+	// Reserve the exact output size up front so append operations never
+	// trigger a reallocation while building the joined string.
+	std::size_t length = delimiter.length() * (strings.size() - 1);
+	for (const auto& s : strings)
+		length += s.size();
+	result.reserve(length);
+
+	bool first = true;
+	for (const auto& s : strings)
 	{
-		result += delimiter;
-		result += strings[i];
+		if (!first)
+			result += delimiter;
+		result += s;
+		first = false;
 	}
 	return result;
 }
