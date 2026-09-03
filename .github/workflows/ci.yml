@@ -35,6 +35,15 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-
 
+      - name: Cache CMake build directory
+        id: cmake-cache
+        uses: actions/cache@v4
+        with:
+          path: out
+          key: cmake-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'CMakePresets.json', 'vcpkg.json') }}-${{ steps.vcpkg-commit.outputs.hash }}
+          restore-keys: |
+            cmake-${{ runner.os }}-
+
       - name: Configure & build with vcpkg presets
         run: |
           cmake --preset default
