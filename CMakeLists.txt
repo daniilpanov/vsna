@@ -41,6 +41,7 @@ add_library(utils STATIC ${CORE_DIR}/utils/addr/addr.cpp
                           ${CORE_DIR}/utils/helper/helper.h)
 target_include_directories(utils PUBLIC
     ${CORE_DIR}/common/types
+    ${CORE_DIR}/common/message
     ${CORE_DIR}/utils
     ${CORE_DIR}/utils/addr
     ${CORE_DIR}/utils/config
@@ -86,6 +87,7 @@ if(GTest_FOUND)
         ${TEST_DIR}/test_helper.cpp
         ${TEST_DIR}/test_addr.cpp
         ${TEST_DIR}/test_config.cpp
+        ${TEST_DIR}/test_message.cpp
         ${TEST_DIR}/test_node_echo.cpp)
     target_link_libraries(vsna_tests PRIVATE node utils GTest::gtest_main GTest::gtest)
     target_include_directories(vsna_tests PRIVATE

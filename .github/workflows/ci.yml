@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Build & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.3
+        with:
+          packages: build-essential g++ cmake ninja-build pkg-config
+          version: 1.0
+          execute_install_scripts: false
+
+      - name: Get vcpkg submodule commit
+        id: vcpkg-commit
+        run: echo "hash=$(git -C vcpkg rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache vcpkg dependencies
+        id: vcpkg-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            out/vcpkg_installed
+            vcpkg/vcpkg
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}-${{ steps.vcpkg-commit.outputs.hash }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
+
+      - name: Cache CMake build directory
+        id: cmake-cache
+        uses: actions/cache@v4
+        with:
+          path: out
+          key: cmake-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'CMakePresets.json', 'vcpkg.json') }}-${{ steps.vcpkg-commit.outputs.hash }}
+          restore-keys: |
+            cmake-${{ runner.os }}-
+
+      - name: Configure & build with vcpkg presets
+        run: |
+          cmake --preset default
+          cmake --build --preset default --target vsna_tests -j2
+
+      - name: Run tests
+        run: ctest --test-dir out --output-on-failure
