@@ -14,10 +14,11 @@ jobs:
           submodules: recursive
 
       - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential g++ cmake ninja-build pkg-config
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.0
+        with:
+          packages: build-essential g++ cmake ninja-build pkg-config
+          version: 1.0
+          execute_install_scripts: false
 
       - name: Configure & build with vcpkg presets
         run: |
