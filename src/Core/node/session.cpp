@@ -136,7 +136,11 @@ void NodeSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
 		return fail(ec, "read");
 
 	// Deserialize the JSON frame into a message envelope and route it.
-	json j = json::parse(beast::buffers_to_string(_buffer.data()), nullptr, false);
+	// Parse directly from the flat_buffer memory via string_view to avoid the
+	// intermediate std::string that buffers_to_string would create.
+	auto data = _buffer.data();
+	json j = json::parse(std::string_view(static_cast<const char *>(data.data()), data.size()),
+	                     nullptr, false);
 	_buffer.consume(_buffer.size());
 	if (j.is_discarded())
 	{

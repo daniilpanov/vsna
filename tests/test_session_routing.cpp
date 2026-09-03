@@ -143,6 +143,46 @@ class RawClientSendsThenReads {
 	std::string _frame;
 };
 
+// A raw WebSocket client that sends two frames then reads one reply.
+// Used to test that garbage frames are ignored and the next valid frame routes.
+class RawClientSendsTwoFramesThenReads {
+  public:
+	explicit RawClientSendsTwoFramesThenReads(uint16_t port, std::string first, std::string second)
+	    : _port(port), _first(std::move(first)), _second(std::move(second))
+	{}
+
+	std::string run()
+	{
+		asio::io_context ioc;
+		websocket::stream<beast::tcp_stream> ws(asio::make_strand(ioc));
+
+		beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(10));
+		beast::get_lowest_layer(ws).connect(
+		    tcp::endpoint(asio::ip::make_address("127.0.0.1"), _port));
+		beast::get_lowest_layer(ws).expires_never();
+		ws.set_option(websocket::stream_base::timeout::suggested(beast::role_type::client));
+		ws.handshake("127.0.0.1", "/");
+
+		ws.text(true);
+		ws.write(asio::buffer(_first));
+		ws.write(asio::buffer(_second));
+
+		beast::flat_buffer buffer;
+		ws.read(buffer);
+		std::string reply = beast::buffers_to_string(buffer.data());
+
+		boost::system::error_code ignore;
+		ws.next_layer().socket().shutdown(tcp::socket::shutdown_both, ignore);
+		ws.next_layer().socket().close(ignore);
+		return reply;
+	}
+
+  private:
+	uint16_t _port;
+	std::string _first;
+	std::string _second;
+};
+
 } // namespace
 
 // Dial direction: a NodeSession dials a raw WebSocket server. The server sends a
@@ -250,6 +290,132 @@ TEST(PersistentSessionAccept, RoutesViaDefaultHandler)
 	json j = json::parse(replyText);
 	EXPECT_EQ(j.at("type").get<std::string>(), "status");
 	EXPECT_EQ(j.at("tx_id").get<uint64_t>(), 42u);
+
+	ioc.stop();
+	worker.join();
+}
+
+// Accept direction: a raw client sends a garbage frame followed by a valid JSON
+// frame. The session ignores the garbage and routes the valid message. Proves
+// that on_read survives non-JSON input without breaking the connection.
+TEST(PersistentSessionAccept, InvalidJSONSessionStaysAlive)
+{
+	auto port = freePort();
+	Node node;
+	asio::io_context ioc;
+
+	tcp::acceptor acceptor(ioc, tcp::endpoint(asio::ip::make_address("127.0.0.1"), port));
+	acceptor.listen();
+
+	std::promise<std::string> gotP;
+	auto got = gotP.get_future();
+
+	auto session = std::make_shared<NodeSession>(node, ioc);
+	session->onMessage([&session, &gotP](const Message& msg) {
+		gotP.set_value(std::to_string(msg.tx_id));
+		Message reply;
+		reply.type = MessageType::Status;
+		reply.tx_id = msg.tx_id;
+		reply.payload = json::object();
+		session->send(reply);
+	});
+
+	std::thread worker([&] {
+		tcp::socket sock = acceptor.accept();
+		session->accept(std::move(sock));
+		asio::executor_work_guard<asio::io_context::executor_type> guard(ioc.get_executor());
+		ioc.run();
+	});
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+	std::string garbage = "this is not json {{{";
+	std::string valid
+	    = json{ { "type", "hello" }, { "tx_id", 99 }, { "payload", json::object() } }.dump();
+
+	RawClientSendsTwoFramesThenReads client(port, std::move(garbage), std::move(valid));
+	std::string replyText;
+	std::string clientErr;
+	std::thread clientThread([&] {
+		try
+		{
+			replyText = client.run();
+		}
+		catch (const std::exception& e)
+		{
+			clientErr = e.what();
+		}
+	});
+
+	ASSERT_TRUE(ready(got)) << "default handler did not fire after garbage frame";
+
+	clientThread.join();
+	EXPECT_TRUE(clientErr.empty()) << "client error: " << clientErr;
+	json j = json::parse(replyText);
+	EXPECT_EQ(j.at("type").get<std::string>(), "status");
+	EXPECT_EQ(j.at("tx_id").get<uint64_t>(), 99u);
+
+	ioc.stop();
+	worker.join();
+}
+
+// Accept direction: a valid message with no payload field (payload defaults to
+// null/empty). Proves that missing payload does not crash the session.
+TEST(PersistentSessionAccept, EmptyPayloadRoutedCorrectly)
+{
+	auto port = freePort();
+	Node node;
+	asio::io_context ioc;
+
+	tcp::acceptor acceptor(ioc, tcp::endpoint(asio::ip::make_address("127.0.0.1"), port));
+	acceptor.listen();
+
+	std::promise<std::string> gotP;
+	auto got = gotP.get_future();
+
+	auto session = std::make_shared<NodeSession>(node, ioc);
+	session->onMessage([&session, &gotP](const Message& msg) {
+		gotP.set_value(std::to_string(msg.tx_id));
+		Message reply;
+		reply.type = MessageType::Status;
+		reply.tx_id = msg.tx_id;
+		reply.payload = json::object();
+		session->send(reply);
+	});
+
+	std::thread worker([&] {
+		tcp::socket sock = acceptor.accept();
+		session->accept(std::move(sock));
+		asio::executor_work_guard<asio::io_context::executor_type> guard(ioc.get_executor());
+		ioc.run();
+	});
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+	// Frame with no payload key — fromJson defaults to json::object().
+	std::string frame = json{ { "type", "hello" }, { "tx_id", 5 } }.dump();
+
+	RawClientSendsThenReads client(port, std::move(frame));
+	std::string replyText;
+	std::string clientErr;
+	std::thread clientThread([&] {
+		try
+		{
+			replyText = client.run();
+		}
+		catch (const std::exception& e)
+		{
+			clientErr = e.what();
+		}
+	});
+
+	ASSERT_TRUE(ready(got)) << "default handler did not fire with empty payload";
+
+	clientThread.join();
+	EXPECT_TRUE(clientErr.empty()) << "client error: " << clientErr;
+	json j = json::parse(replyText);
+	EXPECT_EQ(j.at("type").get<std::string>(), "status");
+	EXPECT_EQ(j.at("tx_id").get<uint64_t>(), 5u);
 
 	ioc.stop();
 	worker.join();
