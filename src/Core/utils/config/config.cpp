@@ -32,6 +32,11 @@ void Config::setAddr(const Addr& addr)
 	this->_addr = addr;
 }
 
+void Config::setAddr(Addr&& addr)
+{
+	this->_addr = std::move(addr);
+}
+
 void Config::setPath(const std::string& _server_path)
 {
 	if (_server_path.empty())

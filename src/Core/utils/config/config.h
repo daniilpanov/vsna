@@ -17,6 +17,7 @@ class Config {
 
 	static Config loadFromFile(const std::string&);
 	void setAddr(const Addr&);
+	void setAddr(Addr&&);
 	void setPath(const std::string&);
 
 	Addr getAddr() const

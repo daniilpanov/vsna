@@ -20,6 +20,10 @@ class Node : public std::enable_shared_from_this<Node> {
 	{
 		_config = config;
 	}
+	void setConfig(Config&& config)
+	{
+		_config = std::move(config);
+	}
 	Config getConfig() const
 	{
 		return _config;
