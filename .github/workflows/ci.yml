@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Build & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential g++ cmake ninja-build pkg-config
+
+      - name: Configure & build with vcpkg presets
+        run: |
+          cmake --preset default
+          cmake --build --preset default --target vsna_tests -j2
+
+      - name: Run tests
+        run: ctest --test-dir out --output-on-failure
