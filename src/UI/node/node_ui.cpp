@@ -1,18 +1,18 @@
-#include "client_ui.h"
+#include "node_ui.h"
 
-std::vector<std::string> ClientUI::CLIParse(int argc, char **argv)
+std::vector<std::string> NodeUI::CLIParse(int argc, char **argv)
 {
-	CLI::App app{ "VSNA Client" };
+	CLI::App app{ "VSNA Node" };
 	app.allow_extras();
 
-	std::string ip{ "127.0.0.1" }; // localhost
+	std::string ip{ "0.0.0.0" };
 	std::string port{ "5555" };
 	std::string path{ "/" };
 	std::string configFile;
 
-	app.add_option("-i,--ip", ip, "IP address of the server");
-	app.add_option("-p,--port", port, "Port of the server");
-	app.add_option("-d,--dir", path, "Client path to download files or send from");
+	app.add_option("-i,--ip", ip, "IP address of the listener socket");
+	app.add_option("-p,--port", port, "Port of the listener socket");
+	app.add_option("-d,--dir", path, "Node path to store and serve files");
 	app.add_option("-c,--config", configFile, "Path to the config file");
 
 	try
@@ -21,7 +21,7 @@ std::vector<std::string> ClientUI::CLIParse(int argc, char **argv)
 	}
 	catch (const CLI::ParseError& e)
 	{
-		if (dynamic_cast<const CLI::Success*>(&e) != nullptr)
+		if (dynamic_cast<const CLI::Success *>(&e) != nullptr)
 		{
 			app.exit(e);
 			exit(EXIT_SUCCESS);
@@ -37,7 +37,7 @@ std::vector<std::string> ClientUI::CLIParse(int argc, char **argv)
 		{
 			try
 			{
-				this->_client.setConfig(Config::loadFromFile(configFile));
+				this->_node->setConfig(Config::loadFromFile(configFile));
 			}
 			catch (const std::exception& e)
 			{
@@ -53,21 +53,21 @@ std::vector<std::string> ClientUI::CLIParse(int argc, char **argv)
 	}
 	else
 	{
-		this->_client.setConfig(Config(Addr(ip, port), path));
+		this->_node->setConfig(Config(Addr(ip, port), path));
 	}
 
 	return app.remaining();
 }
 
-std::pair<std::string, std::vector<std::string> > ClientUI::parseArgs(const std::string& input)
+std::pair<std::string, std::vector<std::string>> NodeUI::parseArgs(const std::string& input)
 {
 	std::vector<std::string> args = split(input);
 	return { args[0], std::vector<std::string>(args.begin() + 1, args.end()) };
 }
 
-void ClientUI::repl()
+void NodeUI::repl()
 {
-	_client.print();
+	_node->print();
 
 	std::string input;
 	while (true)
@@ -82,18 +82,24 @@ void ClientUI::repl()
 		if (_commandManager.execute(name, cmdArgs))
 			break;
 	}
+
+	_node->stop();
 }
 
-void ClientUI::run(int argc, char **argv)
+void NodeUI::run(int argc, char **argv)
 {
 	auto extras = this->CLIParse(argc, argv);
 	_commandManager.initCommands();
+
+	// Start listening in the background.
+	_node->start();
 
 	if (!extras.empty())
 	{
 		std::string name = extras[0];
 		std::vector<std::string> cmdArgs(extras.begin() + 1, extras.end());
 		_commandManager.execute(name, cmdArgs);
+		_node->stop();
 		return;
 	}
 

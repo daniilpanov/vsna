@@ -1,26 +1,24 @@
 #pragma once
 #include <boost/asio.hpp>
-#include <iostream>
 #include <CLI/CLI.hpp>
+#include <iostream>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
-#include "client.h"
 #include "command_manager.h"
 #include "config.h"
-#include "menu.h"
-#include "helper.h"
+#include "node.h"
 
-class ClientUI {
-	Client _client;
+class NodeUI {
+	std::shared_ptr<Node> _node{ std::make_shared<Node>() };
 	CommandManager _commandManager;
 
   public:
-	ClientUI() : _commandManager(_client)
+	NodeUI() : _commandManager(*_node)
 	{}
 	std::vector<std::string> CLIParse(int argc, char **argv);
 	void run(int argc, char **argv);
 	void repl();
-	std::pair<std::string, std::vector<std::string> > parseArgs(const std::string& input);
+	std::pair<std::string, std::vector<std::string>> parseArgs(const std::string& input);
 };

@@ -18,9 +18,7 @@ make configure     # vcpkg bootstrap + dependency install + configure
 make build         # build the targets
 ```
 
-`make configure` calls `cmake --preset default` that builds both `vsna_server` and `vsna_client` into `out/`.
-To build only the server or client, pass `-DBUILD_SERVER_EXE=OFF` / `-DBUILD_CLIENT_EXE=OFF`
-to the `cmake --preset default` after `make configure`
+`make configure` calls `cmake --preset default` that builds the single symmetric `vsna` node into `out/`.
 
 # How to build on Termux (Android)
 
@@ -52,32 +50,20 @@ Binaries land in `out-native/`.
 # To run
 Binaries land in `out/` (on Windows multi-config builds add `Debug\ ` subfolder).
 
-**Client**
+Every device runs the same symmetric `vsna` node. It listens on the configured
+address and can additionally dial other nodes — only the direction of the first
+connection differs between peers.
 
 - With CLI flags:
 
 ```bash
-./out/vsna_client -i 127.0.0.1 -p 5555 -d
+./out/vsna -i 127.0.0.1 -p 5555 -d
 ```
 
 - With config file:
 
 ```bash
-./out/vsna_client -c ./config/config.example.json
-```
-
-**Server**
-
-- With CLI flags:
-
-```bash
-./out/vsna_server -i 0.0.0.0 -p 5555 -d
-```
-
-- With config file:
-
-```bash
-./out/vsna_server -c ./config/config.example.json
+./out/vsna -c ./config/config.example.json
 ```
 
 **CLI Scheme**
@@ -86,8 +72,8 @@ Binaries land in `out/` (on Windows multi-config builds add `Debug\ ` subfolder)
 |---|---|---|
 | `-h`, `--help` | show help message |-|
 | `-p`, `--port <port>` | set port | 5555 |
-| `-i`, `--ip <ip>` | set client/server address | 0.0.0.0 |
-| `-d`, `--dir <path>` | set client/server path | <current directory> |
+| `-i`, `--ip <ip>` | set node address | 0.0.0.0 |
+| `-d`, `--dir <path>` | set node path | <current directory> |
 | `-c`, `--config <path>` | set config file path | none |
 
 **Project Tree**
@@ -97,15 +83,15 @@ vsna/
 ├── Makefile                   # хелпер форматирования и сборки (format/configure/build)
 ├── .gitignore
 ├── vcpkg.json                  # манифест зависимостей vcpkg (Boost, CLI11, nlohmann-json)
-├── CMakeLists.txt             # корневой сценарий сборки (цели: vsna_server + vsna_client + utils/client/server libs)
-├── CMakePresets.json          # пресеты сборки (default = обе цели через vcpkg)
+├── CMakeLists.txt             # корневой сценарий сборки (цели: vsna + node/ui/utils libs)
+├── CMakePresets.json          # пресеты сборки (default = единая цель через vcpkg)
 ├── README.md
 │
 ├── config/                    # конфиги приложения
 │   └── config.example.json    # шаблон для новых развёртываний
 │
 └── src/                       # весь исходный код
-    ├── main.cpp               # точка входа; BUILD_SERVER/BUILD_CLIENT выбирают роль
+    ├── main.cpp               # точка входа; запускает NodeUI (единый узел)
     │
     ├── Core/                  # БИЗНЕС-ЛОГИКА (без зависимостей от UI)
     │   ├── common/types/      # общие типы
@@ -117,20 +103,13 @@ vsna/
     │   │   ├── helper/        # inline-утилиты: trim, splitArgs, isValidIPv4
     │   │   └── logger/        # C++23 std::print-based logging
     │   │
-    │   ├── server/            # серверная логика
-    │   │   ├── server.*       # Server: acceptor + пул потоков, цикл приёма соединений
-    │   │   └── session.*      # ServerSession: WS-сессия клиента (read => echo => read)
-    │   │
-    │   └── client/            # клиентская логика
-    │       ├── client.*       # Client: io_context, connect/sendFiles/download
-    │       └── session/       # ClientSession: исходящий WebSocket-сеанс
+    │   └── node/              # симметричный узел (цель node.lib)
+    │       ├── node.*         # Node: acceptor + пул потоков + исходящие диалы
+    │       └── session.*      # NodeSession: симметричная WS-сессия (read => echo => read)
     │
     └── UI/                    # ПРЕЗЕНТАЦИОННЫЙ СЛОЙ (вызывает методы Core)
-        ├── server/
-        │   └── server_cli.*   # ServerCLI: CLI11-парсинг, запуск сервера
-        │
-        └── client/
-            ├── client_ui.*    # ClientUI: CLI11-парсинг, REPL-цикл
+        └── node/
+            ├── node_ui.*      # NodeUI: CLI11-парсинг, REPL-цикл
             ├── menu/          # MenuItem-иерархия: классы-команды (connect, help, exit...)
             └── com_manager/   # CommandManager: реестр и вызов команд
 ```

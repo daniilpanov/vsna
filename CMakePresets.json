@@ -9,7 +9,7 @@
     {
       "name": "default",
       "displayName": "Default",
-      "description": "Build both server and client with the vcpkg toolchain (Debug)",
+      "description": "Build the symmetric vsna node with the vcpkg toolchain (Debug)",
       "binaryDir": "${sourceDir}/out",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",

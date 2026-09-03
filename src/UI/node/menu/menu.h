@@ -4,8 +4,8 @@
 #include <string_view>
 #include <vector>
 
-#include "client.h"
 #include "config.h"
+#include "node.h"
 
 struct CommandInfo
 {
@@ -16,53 +16,64 @@ struct CommandInfo
 
 class MenuItem {
   protected:
-	Client& _client;
+	Node& _node;
 
   public:
 	const CommandInfo _info;
 
 	virtual ~MenuItem() = default;
-	MenuItem(Client& client, const CommandInfo& info) : _client(client), _info(info)
+	MenuItem(Node& node, const CommandInfo& info) : _node(node), _info(info)
 	{}
 	virtual bool handle(const std::vector<std::string>&) = 0;
 };
 
 class ConnectCommand : public MenuItem {
   public:
-	ConnectCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
+	ConnectCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
-		_client.connect(args);
+		if (args.size() != 1)
+		{
+			std::cerr << "[!] Usage: " << _info.usage << std::endl;
+			return false;
+		}
+		auto parts = split(args[0], ":");
+		if (parts.size() != 2)
+		{
+			std::cerr << "[!] Usage: " << _info.usage << std::endl;
+			return false;
+		}
+		_node.connect(parts[0], parts[1]);
 		return false;
 	};
 };
 
 class MyPathCommand : public MenuItem {
   public:
-	MyPathCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
+	MyPathCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
-		_client.myPath(args);
+		_node.myPath();
 		return false;
 	};
 };
 
 class PrintCommand : public MenuItem {
   public:
-	PrintCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
+	PrintCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
-		_client.print();
+		_node.print();
 		return false;
 	};
 };
 
 class ExitCommand : public MenuItem {
   public:
-	ExitCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
+	ExitCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
 	{}
 	bool handle(const std::vector<std::string>& args) override
 	{
@@ -77,8 +88,8 @@ class HelpCommand : public MenuItem {
 	CommandManager& _manager;
 
   public:
-	HelpCommand(Client& client, const CommandInfo& info, CommandManager& manager)
-	    : MenuItem(client, info), _manager(manager)
+	HelpCommand(Node& node, const CommandInfo& info, CommandManager& manager)
+	    : MenuItem(node, info), _manager(manager)
 	{}
 	bool handle(const std::vector<std::string>& args) override;
 };
