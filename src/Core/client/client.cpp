@@ -6,24 +6,9 @@ void Client::print() const
 	std::cout << _config.toString() << std::endl;
 }
 
-void Client::showPath(const std::vector<std::string>& args) const
-{
-	std::cout << "Server path: " << _config.getPath() << std::endl;
-}
-
 void Client::myPath(const std::vector<std::string>& args) const
 {
 	std::cout << "Current path: " << _config.getPath() << std::endl;
-}
-
-void Client::sendFiles(const std::vector<std::string>& args)
-{
-	std::cout << "Sending files..." << std::endl;
-}
-
-void Client::download(const std::vector<std::string>& args)
-{
-	std::cout << "Downloading..." << std::endl;
 }
 
 void Client::connect(const std::vector<std::string>& args)
@@ -52,14 +37,6 @@ void Client::connect(const std::vector<std::string>& args)
 	std::make_shared<ClientSession>(_io_context)
 	    ->run(addr.ip().c_str(), addr.port().c_str(), "Hello, World!");
 	_io_context.run();
-}
-
-void Client::sendMsg(const std::vector<std::string>& args)
-{
-	std::cout << "Sending message..." << std::endl;
-	std::string msg = join(args, " ");
-	std::cout << "Message: " << msg << std::endl;
-	std::cout << "Message length: " << msg.length() << std::endl;
 }
 
 void Client::disconnect()

@@ -38,17 +38,6 @@ class ConnectCommand : public MenuItem {
 	};
 };
 
-class ShowPathCommand : public MenuItem {
-  public:
-	ShowPathCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
-	{}
-	bool handle(const std::vector<std::string>& args) override
-	{
-		_client.showPath(args);
-		return false;
-	};
-};
-
 class MyPathCommand : public MenuItem {
   public:
 	MyPathCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
@@ -56,28 +45,6 @@ class MyPathCommand : public MenuItem {
 	bool handle(const std::vector<std::string>& args) override
 	{
 		_client.myPath(args);
-		return false;
-	};
-};
-
-class SendFilesCommand : public MenuItem {
-  public:
-	SendFilesCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
-	{}
-	bool handle(const std::vector<std::string>& args) override
-	{
-		_client.sendFiles(args);
-		return false;
-	};
-};
-
-class DownloadCommand : public MenuItem {
-  public:
-	DownloadCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
-	{}
-	bool handle(const std::vector<std::string>& args) override
-	{
-		_client.download(args);
 		return false;
 	};
 };
@@ -114,15 +81,4 @@ class HelpCommand : public MenuItem {
 	    : MenuItem(client, info), _manager(manager)
 	{}
 	bool handle(const std::vector<std::string>& args) override;
-};
-
-class SendMessageCommand : public MenuItem {
-  public:
-	SendMessageCommand(Client& client, const CommandInfo& info) : MenuItem(client, info)
-	{}
-	bool handle(const std::vector<std::string>& args) override
-	{
-		_client.sendMsg(args);
-		return false;
-	};
 };

@@ -15,11 +15,7 @@ void CommandManager::initCommands()
 	addCommand<ExitCommand>("exit", "Exit the program", "");
 	addCommand<PrintCommand>("print", "Print the server path", "");
 	addCommand<MyPathCommand>("mypath", "Show the client path", "");
-	addCommand<ShowPathCommand>("show_path", "Show server path", "[path]");
 	addCommand<ConnectCommand>("connect", "Connect to the server", "[ip:port]");
-	addCommand<SendFilesCommand>("send_files", "Send file(s)", "[file | path]");
-	addCommand<DownloadCommand>("download", "Download file(s)", "[file | path]");
-	addCommand<SendMessageCommand>("send", "Send a message", "[message]");
 }
 
 bool CommandManager::execute(const std::string& name, std::vector<std::string> args)

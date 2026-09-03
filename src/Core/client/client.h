@@ -24,11 +24,7 @@ class Client {
 
 	void connect(const std::vector<std::string>&);
 	void print() const;
-	void showPath(const std::vector<std::string>&) const;
 	void myPath(const std::vector<std::string>&) const;
-	void sendFiles(const std::vector<std::string>&);
-	void download(const std::vector<std::string>&);
-	void sendMsg(const std::vector<std::string>&);
 	void disconnect();
 
   private:
