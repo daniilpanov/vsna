@@ -25,7 +25,7 @@ class Addr {
 	void setIp(const std::string&);
 	void setPort(const std::string&);
 
-	const std::string toString() const
+	std::string toString() const
 	{
 		return _ip + ":" + std::to_string(_portNum);
 	}
