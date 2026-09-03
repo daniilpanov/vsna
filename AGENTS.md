@@ -10,15 +10,17 @@ VSNA — a C++23 CLI project (WebSocket-based data exchange over VLAN). Early-st
 make configure     # configures all targets
 make build         # configures and builds all targets
 make format        # runs clang-format on all .cpp/.h
+make test          # build + run tests via the vcpkg default preset (out/)
+make test-native   # build + run tests via the native preset (out-native/, system deps)
 ```
 
-- Build outputs go to `out/` (`vsna_server`, `vsna_client`), deps via manifest into `out/vcpkg_installed/`.
+- Build outputs go to `out/` (single `vsna` node), deps via manifest into `out/vcpkg_installed/`.
 - `vcpkg` is a git submodule; there is **no init_modules script**. The vcpkg CMake toolchain (referenced in `CMakePresets.json`) auto-bootstraps vcpkg and auto-installs all deps declared in `vcpkg.json` during configure.
 - CMake is the entry point — there is **no build.sh/build.bat either**.
 - Requires C++23 (`<print>`, `<format>`, `<source_location>`).
-- `BUILD_SERVER_EXE` / `BUILD_CLIENT_EXE` CMake options (both default `ON`, built in one configure). `-DBUILD_SERVER_EXE=OFF` builds client only, and vice versa.
 - To clean: `rm -rf out` (or `cmake --build --preset default --target clean`).
-- No tests, no CI, no linter beyond `clang-format`.
+- Tests live in `tests/` (GoogleTest) on a separate `vsna_tests` target, registered with CTest; they are only built when `GTest` is found (native: system package; vcpkg: declared in `vcpkg.json`).
+- No CI, no linter beyond `clang-format`.
 
 ### Build on Termux (Android)
 
@@ -41,17 +43,15 @@ make build-native         # cmake --build --preset native
 
 ## Architecture
 
-- **Shared entry point** (`src/main.cpp`): compile-time `#if BUILD_SERVER` / `#if BUILD_CLIENT` selects the role; it is compiled into two executables (`vsna_server`, `vsna_client`).
+- **Shared entry point** (`src/main.cpp`): always boots a `NodeUI`; compiled into the single `vsna` executable.
 - `src/` contains only two folders — `Core/` and `UI/` — plus `main.cpp`.
-- Three static libs: `utils` (always), plus `server` and `client` (built only when the matching executable is enabled).
+- Two static libs: `utils` and `node` (Core), plus `ui` (presentation layer), linked into one `vsna` binary.
 - **Core/** — business logic, no UI dependencies:
   - `Core/common/types/pch.h` — precompiled header with Boost.Beast/Asio includes and common `using` declarations.
   - `Core/utils/` — addr, config, helper, logger.
-  - `Core/server/` — `Server` class and `ServerSession` (WebSocket handling).
-  - `Core/client/` — `Client` class and `ClientSession` (WebSocket handling).
+  - `Core/node/` — `Node` (acceptor + thread pool + outgoing dials) and `NodeSession` (symmetric WS session: `accept`/`dial` branches converge into a shared read/write loop).
 - **UI/** — presentation layer, calls only Core methods:
-  - `UI/server/` — `ServerCLI` (CLI arg parsing, server startup).
-  - `UI/client/` — `ClientUI` (REPL loop), `CommandManager` (command dispatch), `menu/` (command definitions).
+  - `UI/node/` — `NodeUI` (CLI arg parsing + REPL loop), `CommandManager` (command dispatch), `menu/` (command definitions).
 - `src/utils/helper/helper.h` — inline helpers (trim, split, isValidIPv4, join) + constants `max_length` (1024) and `max_threads` (4).
 - `src/utils/logger/logger.h` — C++23 `std::print`-based logging.
 
@@ -65,5 +65,5 @@ make build-native         # cmake --build --preset native
 
 ## Gotchas
 
-- `getpid()` in `Core/server/server.cpp` is POSIX-only.
-- No `#pragma once` in some headers (e.g. Core server `session.h`, Core client `session.h`).
+- `getpid()` in `Core/node/node.cpp` is POSIX-only.
+- No `#pragma once` in some headers (e.g. Core `session.h`).

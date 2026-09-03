@@ -8,7 +8,7 @@
 
 class CommandManager {
   public:
-	CommandManager(Client& client) : _client(client){};
+	CommandManager(Node& node) : _node(node) {};
 	void initCommands();
 	bool execute(const std::string& name, std::vector<std::string> args);
 	std::vector<CommandInfo> listCommands() const;
@@ -18,6 +18,6 @@ class CommandManager {
 	void addCommand(const std::string& name, const std::string& desc, const std::string& usage,
 	                Args&&...args);
 
-	std::unordered_map<std::string, std::unique_ptr<MenuItem> > _commands;
-	Client& _client;
+	std::unordered_map<std::string, std::unique_ptr<MenuItem>> _commands;
+	Node& _node;
 };

@@ -3,27 +3,12 @@
 #include <boost/beast/websocket.hpp>
 #include <iostream>
 
-#if BUILD_SERVER
-#include "server_cli.h"
-#endif
-
-#if BUILD_CLIENT
-#include "client_ui.h"
-#endif
+#include "node_ui.h"
 
 int main(int argc, char *argv[])
 {
-#if BUILD_SERVER
-	std::cout << "Built as a server." << std::endl;
-	ServerCLI serverCLI;
-	serverCLI.run(argc, argv);
-#endif
-
-#if BUILD_CLIENT
-	std::cout << "Built as a client." << std::endl;
-	ClientUI clientUI;
-	clientUI.run(argc, argv);
-#endif
+	NodeUI nodeUI;
+	nodeUI.run(argc, argv);
 
 	return EXIT_SUCCESS;
 }

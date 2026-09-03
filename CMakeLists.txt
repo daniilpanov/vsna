@@ -10,10 +10,6 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 OLD)
 endif()
 
-# Options (each defaults to ON; both can be built in one configure)
-option(BUILD_SERVER_EXE "Build server binary" ON)
-option(BUILD_CLIENT_EXE "Build client binary" ON)
-
 # Paths
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(SRC_DIR      ${PROJECT_ROOT}/src)
@@ -54,47 +50,52 @@ target_include_directories(utils PUBLIC
 target_include_directories(utils PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(utils PUBLIC Boost::headers)
 
-# Helper to define a binary (server or client)
-function(add_vsna_binary kind)
-    if(kind STREQUAL "server")
-        add_library(server STATIC ${CORE_DIR}/server/server.cpp
-                                  ${UI_DIR}/server/server_cli.cpp
-                                  ${CORE_DIR}/server/session.cpp)
-        target_link_libraries(server PUBLIC utils CLI11::CLI11)
-        target_include_directories(server PUBLIC
-            ${CORE_DIR}/server
-            ${UI_DIR}/server)
+# Core node (symmetric peer) + UI
+add_library(node STATIC ${CORE_DIR}/node/node.cpp
+                        ${CORE_DIR}/node/session.cpp)
+target_link_libraries(node PUBLIC utils)
+target_include_directories(node PUBLIC
+    ${CORE_DIR}/node
+    ${CORE_DIR}/common/types)
 
-        add_executable(vsna_server ${SRC_DIR}/main.cpp)
-        set_target_properties(vsna_server PROPERTIES OUTPUT_NAME vsna_server)
-        target_compile_definitions(vsna_server PRIVATE BUILD_SERVER=1)
-        target_link_libraries(vsna_server PRIVATE server utils)
-        target_include_directories(vsna_server PRIVATE ${UI_DIR}/server)
-    else()
-        add_library(client STATIC ${CORE_DIR}/client/client.cpp
-                                  ${CORE_DIR}/client/session/session.cpp
-                                  ${UI_DIR}/client/client_ui.cpp
-                                  ${UI_DIR}/client/menu/menu.cpp
-                                  ${UI_DIR}/client/com_manager/command_manager.cpp)
-        target_link_libraries(client PUBLIC utils CLI11::CLI11)
-        target_include_directories(client PUBLIC
-            ${CORE_DIR}/client
-            ${CORE_DIR}/client/session
-            ${UI_DIR}/client
-            ${UI_DIR}/client/menu
-            ${UI_DIR}/client/com_manager)
+add_library(ui STATIC ${UI_DIR}/node/node_ui.cpp
+                      ${UI_DIR}/node/menu/menu.cpp
+                      ${UI_DIR}/node/com_manager/command_manager.cpp)
+target_link_libraries(ui PUBLIC node utils CLI11::CLI11)
+target_include_directories(ui PUBLIC
+    ${UI_DIR}/node
+    ${UI_DIR}/node/menu
+    ${UI_DIR}/node/com_manager)
 
-        add_executable(vsna_client ${SRC_DIR}/main.cpp)
-        set_target_properties(vsna_client PROPERTIES OUTPUT_NAME vsna_client)
-        target_compile_definitions(vsna_client PRIVATE BUILD_CLIENT=1)
-        target_link_libraries(vsna_client PRIVATE client utils)
-        target_include_directories(vsna_client PRIVATE ${UI_DIR}/client)
-    endif()
-endfunction()
+add_executable(vsna ${SRC_DIR}/main.cpp)
+set_target_properties(vsna PROPERTIES OUTPUT_NAME vsna)
+target_link_libraries(vsna PRIVATE ui node utils)
+target_include_directories(vsna PRIVATE ${UI_DIR}/node)
 
-if(BUILD_SERVER_EXE)
-    add_vsna_binary(server)
-endif()
-if(BUILD_CLIENT_EXE)
-    add_vsna_binary(client)
+# Tests
+# GTest is not required to build/run the node. When it is available (native
+# package on Termux, or gtest in the vcpkg manifest elsewhere) the unit and
+# echo tests are built and registered with CTest.
+find_package(GTest QUIET)
+if(GTest_FOUND)
+    enable_testing()
+
+    set(TEST_DIR ${PROJECT_ROOT}/tests)
+
+    add_executable(vsna_tests
+        ${TEST_DIR}/test_helper.cpp
+        ${TEST_DIR}/test_addr.cpp
+        ${TEST_DIR}/test_config.cpp
+        ${TEST_DIR}/test_node_echo.cpp)
+    target_link_libraries(vsna_tests PRIVATE node utils GTest::gtest_main GTest::gtest)
+    target_include_directories(vsna_tests PRIVATE
+        ${CORE_DIR}/node
+        ${CORE_DIR}/common/types
+        ${CORE_DIR}/utils
+        ${CORE_DIR}/utils/addr
+        ${CORE_DIR}/utils/config
+        ${CORE_DIR}/utils/helper)
+
+    add_test(NAME vsna_tests COMMAND vsna_tests)
+    set_tests_properties(vsna_tests PROPERTIES TIMEOUT 60)
 endif()
