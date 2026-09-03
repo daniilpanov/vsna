@@ -2,6 +2,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <algorithm>
 #include <sstream>
+#include <string_view>
 
 constexpr uint16_t max_length{ 1024 };
 constexpr uint16_t max_threads{ 4 };
@@ -15,12 +16,12 @@ inline std::string trim(const std::string& s)
 	return s.substr(begin, end - begin + 1);
 }
 
-inline std::vector<std::string> split(const std::string& input, const std::string& delimiter = " ")
+inline std::vector<std::string> split(std::string_view input, std::string_view delimiter = " ")
 {
 	std::vector<std::string> result;
 	if (delimiter.empty())
 	{
-		result.push_back(input);
+		result.emplace_back(input);
 		return result;
 	}
 
@@ -29,12 +30,12 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
 
 	while (end != std::string::npos)
 	{
-		result.push_back(input.substr(start, end - start));
+		result.emplace_back(input.substr(start, end - start));
 		start = end + delimiter.length();
 		end = input.find(delimiter, start);
 	}
 
-	result.push_back(input.substr(start));
+	result.emplace_back(input.substr(start));
 	return result;
 }
 
@@ -51,15 +52,27 @@ inline bool isValidIPv4(const std::string& ipString)
 	}
 }
 
-inline std::string join(const std::vector<std::string>& strings, const std::string& delimiter = " ")
+inline std::string join(const std::vector<std::string>& strings, std::string_view delimiter = " ")
 {
-	if (strings.empty())
-		return "";
+	std::string result;
 
-	std::string result = strings[0];
-	for (size_t i = 1; i < strings.size(); ++i)
+	if (strings.empty())
+		return result;
+
+	// Reserve the exact output size up front so append operations never
+	// trigger a reallocation while building the joined string.
+	std::size_t length = delimiter.length() * (strings.size() - 1);
+	for (const auto& s : strings)
+		length += s.size();
+	result.reserve(length);
+
+	bool first = true;
+	for (const auto& s : strings)
 	{
-		result += delimiter + strings[i];
+		if (!first)
+			result += delimiter;
+		result += s;
+		first = false;
 	}
 	return result;
 }

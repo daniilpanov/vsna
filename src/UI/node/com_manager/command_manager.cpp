@@ -20,7 +20,7 @@ void CommandManager::initCommands()
 
 bool CommandManager::execute(const std::string& name, std::vector<std::string> args)
 {
-	auto it = _commands.find(std::string(name));
+	auto it = _commands.find(name);
 	if (it == _commands.end())
 	{
 		std::cout << "[!] Unknown command: " << name << std::endl;
