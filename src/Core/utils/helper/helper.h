@@ -2,6 +2,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <algorithm>
 #include <sstream>
+#include <string_view>
 
 constexpr uint16_t max_length{ 1024 };
 constexpr uint16_t max_threads{ 4 };
@@ -15,12 +16,12 @@ inline std::string trim(const std::string& s)
 	return s.substr(begin, end - begin + 1);
 }
 
-inline std::vector<std::string> split(const std::string& input, const std::string& delimiter = " ")
+inline std::vector<std::string> split(std::string_view input, std::string_view delimiter = " ")
 {
 	std::vector<std::string> result;
 	if (delimiter.empty())
 	{
-		result.push_back(input);
+		result.push_back(std::string(input));
 		return result;
 	}
 
@@ -29,12 +30,12 @@ inline std::vector<std::string> split(const std::string& input, const std::strin
 
 	while (end != std::string::npos)
 	{
-		result.push_back(input.substr(start, end - start));
+		result.push_back(std::string(input.substr(start, end - start)));
 		start = end + delimiter.length();
 		end = input.find(delimiter, start);
 	}
 
-	result.push_back(input.substr(start));
+	result.push_back(std::string(input.substr(start)));
 	return result;
 }
 
