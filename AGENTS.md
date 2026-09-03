@@ -10,6 +10,8 @@ VSNA — a C++23 CLI project (WebSocket-based data exchange over VLAN). Early-st
 make configure     # configures all targets
 make build         # configures and builds all targets
 make format        # runs clang-format on all .cpp/.h
+make test          # build + run tests via the vcpkg default preset (out/)
+make test-native   # build + run tests via the native preset (out-native/, system deps)
 ```
 
 - Build outputs go to `out/` (single `vsna` node), deps via manifest into `out/vcpkg_installed/`.
@@ -17,7 +19,8 @@ make format        # runs clang-format on all .cpp/.h
 - CMake is the entry point — there is **no build.sh/build.bat either**.
 - Requires C++23 (`<print>`, `<format>`, `<source_location>`).
 - To clean: `rm -rf out` (or `cmake --build --preset default --target clean`).
-- No tests, no CI, no linter beyond `clang-format`.
+- Tests live in `tests/` (GoogleTest) on a separate `vsna_tests` target, registered with CTest; they are only built when `GTest` is found (native: system package; vcpkg: declared in `vcpkg.json`).
+- No CI, no linter beyond `clang-format`.
 
 ### Build on Termux (Android)
 

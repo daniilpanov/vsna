@@ -71,3 +71,31 @@ add_executable(vsna ${SRC_DIR}/main.cpp)
 set_target_properties(vsna PROPERTIES OUTPUT_NAME vsna)
 target_link_libraries(vsna PRIVATE ui node utils)
 target_include_directories(vsna PRIVATE ${UI_DIR}/node)
+
+# Tests
+# GTest is not required to build/run the node. When it is available (native
+# package on Termux, or gtest in the vcpkg manifest elsewhere) the unit and
+# echo tests are built and registered with CTest.
+find_package(GTest QUIET)
+if(GTest_FOUND)
+    enable_testing()
+
+    set(TEST_DIR ${PROJECT_ROOT}/tests)
+
+    add_executable(vsna_tests
+        ${TEST_DIR}/test_helper.cpp
+        ${TEST_DIR}/test_addr.cpp
+        ${TEST_DIR}/test_config.cpp
+        ${TEST_DIR}/test_node_echo.cpp)
+    target_link_libraries(vsna_tests PRIVATE node utils GTest::gtest_main GTest::gtest)
+    target_include_directories(vsna_tests PRIVATE
+        ${CORE_DIR}/node
+        ${CORE_DIR}/common/types
+        ${CORE_DIR}/utils
+        ${CORE_DIR}/utils/addr
+        ${CORE_DIR}/utils/config
+        ${CORE_DIR}/utils/helper)
+
+    add_test(NAME vsna_tests COMMAND vsna_tests)
+    set_tests_properties(vsna_tests PROPERTIES TIMEOUT 60)
+endif()
