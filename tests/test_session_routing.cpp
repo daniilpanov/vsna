@@ -186,13 +186,13 @@ class RawClientSendsTwoFramesThenReads {
 } // namespace
 
 // Dial direction: a NodeSession dials a raw WebSocket server. The server sends a
-// JSON frame; the session's tx_id handler routes it and replies via send(); the
-// server verifies the reply. Proves send(), persistence and tx_id routing.
+// JSON frame; the session's type handler routes it and replies via send(); the
+// server verifies the reply. Proves send(), persistence and type routing.
 TEST(PersistentSessionDial, RoutesMessageAndReplies)
 {
 	auto port = freePort();
 	RawServerSendsThenReads server(
-	    port, json{ { "type", "hello" }, { "tx_id", 7 }, { "payload", json::object() } }.dump());
+	    port, json{ { "type", "hello" }, { "payload", json::object() } }.dump());
 	server.start();
 	ASSERT_TRUE(server.waitBound()) << "server did not start listening";
 
@@ -203,11 +203,10 @@ TEST(PersistentSessionDial, RoutesMessageAndReplies)
 	asio::io_context ioc;
 	auto session = std::make_shared<NodeSession>(node, ioc);
 
-	session->onTx(7, [&session, &gotP](const Message& msg) {
-		gotP.set_value(std::to_string(msg.tx_id));
+	session->onType(MessageType::Hello, [&session, &gotP](const Message& msg) {
+		gotP.set_value(json(msg.type).get<std::string>());
 		Message reply;
 		reply.type = MessageType::Status;
-		reply.tx_id = msg.tx_id;
 		reply.payload = json::object();
 		session->send(reply);
 	});
@@ -219,12 +218,11 @@ TEST(PersistentSessionDial, RoutesMessageAndReplies)
 		ioc.run();
 	});
 
-	ASSERT_TRUE(ready(got)) << "tx_id handler did not fire";
+	ASSERT_TRUE(ready(got)) << "type handler did not fire";
 
 	std::string reply = server.result();
 	json j = json::parse(reply);
 	EXPECT_EQ(j.at("type").get<std::string>(), "status");
-	EXPECT_EQ(j.at("tx_id").get<uint64_t>(), 7u);
 
 	ioc.stop();
 	worker.join();
@@ -248,10 +246,9 @@ TEST(PersistentSessionAccept, RoutesViaDefaultHandler)
 
 	auto session = std::make_shared<NodeSession>(node, ioc);
 	session->onMessage([&session, &gotP](const Message& msg) {
-		gotP.set_value(std::to_string(msg.tx_id));
+		gotP.set_value(json(msg.type).get<std::string>());
 		Message reply;
 		reply.type = MessageType::Status;
-		reply.tx_id = msg.tx_id;
 		reply.payload = json::object();
 		session->send(reply);
 	});
@@ -269,7 +266,7 @@ TEST(PersistentSessionAccept, RoutesViaDefaultHandler)
 	std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 	RawClientSendsThenReads client(
-	    port, json{ { "type", "hello" }, { "tx_id", 42 }, { "payload", json::object() } }.dump());
+	    port, json{ { "type", "hello" }, { "payload", json::object() } }.dump());
 	std::string replyText;
 	std::string clientErr;
 	std::thread clientThread([&] {
@@ -289,7 +286,6 @@ TEST(PersistentSessionAccept, RoutesViaDefaultHandler)
 	EXPECT_TRUE(clientErr.empty()) << "client error: " << clientErr;
 	json j = json::parse(replyText);
 	EXPECT_EQ(j.at("type").get<std::string>(), "status");
-	EXPECT_EQ(j.at("tx_id").get<uint64_t>(), 42u);
 
 	ioc.stop();
 	worker.join();
@@ -312,10 +308,9 @@ TEST(PersistentSessionAccept, InvalidJSONSessionStaysAlive)
 
 	auto session = std::make_shared<NodeSession>(node, ioc);
 	session->onMessage([&session, &gotP](const Message& msg) {
-		gotP.set_value(std::to_string(msg.tx_id));
+		gotP.set_value(json(msg.type).get<std::string>());
 		Message reply;
 		reply.type = MessageType::Status;
-		reply.tx_id = msg.tx_id;
 		reply.payload = json::object();
 		session->send(reply);
 	});
@@ -330,8 +325,7 @@ TEST(PersistentSessionAccept, InvalidJSONSessionStaysAlive)
 	std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 	std::string garbage = "this is not json {{{";
-	std::string valid
-	    = json{ { "type", "hello" }, { "tx_id", 99 }, { "payload", json::object() } }.dump();
+	std::string valid = json{ { "type", "hello" }, { "payload", json::object() } }.dump();
 
 	RawClientSendsTwoFramesThenReads client(port, std::move(garbage), std::move(valid));
 	std::string replyText;
@@ -353,7 +347,6 @@ TEST(PersistentSessionAccept, InvalidJSONSessionStaysAlive)
 	EXPECT_TRUE(clientErr.empty()) << "client error: " << clientErr;
 	json j = json::parse(replyText);
 	EXPECT_EQ(j.at("type").get<std::string>(), "status");
-	EXPECT_EQ(j.at("tx_id").get<uint64_t>(), 99u);
 
 	ioc.stop();
 	worker.join();
@@ -375,10 +368,9 @@ TEST(PersistentSessionAccept, EmptyPayloadRoutedCorrectly)
 
 	auto session = std::make_shared<NodeSession>(node, ioc);
 	session->onMessage([&session, &gotP](const Message& msg) {
-		gotP.set_value(std::to_string(msg.tx_id));
+		gotP.set_value(json(msg.type).get<std::string>());
 		Message reply;
 		reply.type = MessageType::Status;
-		reply.tx_id = msg.tx_id;
 		reply.payload = json::object();
 		session->send(reply);
 	});
@@ -393,7 +385,7 @@ TEST(PersistentSessionAccept, EmptyPayloadRoutedCorrectly)
 	std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 	// Frame with no payload key — fromJson defaults to json::object().
-	std::string frame = json{ { "type", "hello" }, { "tx_id", 5 } }.dump();
+	std::string frame = json{ { "type", "hello" } }.dump();
 
 	RawClientSendsThenReads client(port, std::move(frame));
 	std::string replyText;
@@ -415,7 +407,6 @@ TEST(PersistentSessionAccept, EmptyPayloadRoutedCorrectly)
 	EXPECT_TRUE(clientErr.empty()) << "client error: " << clientErr;
 	json j = json::parse(replyText);
 	EXPECT_EQ(j.at("type").get<std::string>(), "status");
-	EXPECT_EQ(j.at("tx_id").get<uint64_t>(), 5u);
 
 	ioc.stop();
 	worker.join();
