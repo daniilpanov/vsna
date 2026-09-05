@@ -18,6 +18,8 @@ set(UI_DIR       ${SRC_DIR}/UI)
 
 # Protocol timing constants (single source of truth, forwarded to the code as
 # compile definitions; node propagates them to vsna and vsna_tests).
+set(VSNA_HELLO_RETRY_MS    1000  CACHE STRING "Hello handshake retry interval (ms)")
+set(VSNA_HELLO_RETRIES     4     CACHE STRING "Hello retransmission count")
 set(VSNA_PING_INTERVAL_MS  10000 CACHE STRING "Keepalive ping interval (ms)")
 set(VSNA_IDLE_TIMEOUT_MS   30000 CACHE STRING "Idle timeout before disconnect (ms)")
 
@@ -59,6 +61,8 @@ add_library(node STATIC ${CORE_DIR}/node/node.cpp
                         ${CORE_DIR}/node/session.cpp)
 target_link_libraries(node PUBLIC utils)
 target_compile_definitions(node PUBLIC
+    VSNA_HELLO_RETRY_MS=${VSNA_HELLO_RETRY_MS}
+    VSNA_HELLO_RETRIES=${VSNA_HELLO_RETRIES}
     VSNA_PING_INTERVAL_MS=${VSNA_PING_INTERVAL_MS}
     VSNA_IDLE_TIMEOUT_MS=${VSNA_IDLE_TIMEOUT_MS})
 target_include_directories(node PUBLIC

@@ -46,6 +46,9 @@ class Node : public std::enable_shared_from_this<Node> {
 	void myPath() const;
 
   private:
+	// NodeSession notifies the node when it closes (close -> detach).
+	friend class NodeSession;
+
 	Config _config;
 	boost::asio::io_context _io_context;
 	tcp::acceptor _acceptor;
@@ -58,4 +61,12 @@ class Node : public std::enable_shared_from_this<Node> {
 	void setup_acceptor();
 	void do_accept();
 	void on_accept(beast::error_code ec, tcp::socket socket);
+
+	// Copy the live sessions under the mutex.
+	std::vector<std::shared_ptr<NodeSession>> sessionsSnapshot();
+
+	// Drop a session from the registry once it has closed. Callers must hold a
+	// shared reference to the session (for example a running handler), because
+	// this releases the node's own reference and may be the last one.
+	void detach(NodeSession *session);
 };
