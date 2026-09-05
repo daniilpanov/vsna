@@ -67,7 +67,10 @@ void Node::start()
 void Node::connect(const std::string& host, const std::string& port)
 {
 	auto session = std::make_shared<NodeSession>(*this, _io_context);
-	_sessions.push_back(session);
+	{
+		std::lock_guard<std::mutex> lock(_sessions_mutex);
+		_sessions.push_back(session);
+	}
 	session->dial(host, port);
 }
 
@@ -112,7 +115,10 @@ void Node::on_accept(beast::error_code ec, tcp::socket socket)
 		          << socket.remote_endpoint().port() << '\n';
 
 		auto session = std::make_shared<NodeSession>(*this, _io_context);
-		_sessions.push_back(session);
+		{
+			std::lock_guard<std::mutex> lock(_sessions_mutex);
+			_sessions.push_back(session);
+		}
 		session->accept(std::move(socket));
 	}
 

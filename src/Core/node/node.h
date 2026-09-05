@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -52,7 +53,10 @@ class Node : public std::enable_shared_from_this<Node> {
 	boost::asio::io_context _io_context;
 	tcp::acceptor _acceptor;
 	std::vector<std::thread> _threads;
+	// Sessions are pushed from the UI thread (connect) and from io threads
+	// (on_accept) and popped when a session closes, so the vector is guarded.
 	std::vector<std::shared_ptr<NodeSession>> _sessions;
+	std::mutex _sessions_mutex;
 
 	void setup_acceptor();
 	void do_accept();
