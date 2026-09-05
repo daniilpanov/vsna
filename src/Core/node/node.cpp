@@ -35,21 +35,6 @@ void Node::setup_acceptor()
 	std::cout << "[~] Listening on " << _config.getAddr().toString() << '\n';
 }
 
-void Node::run()
-{
-	setup_acceptor();
-	do_accept();
-
-	_threads.reserve(max_threads - 1);
-	for (size_t i = 0; i < max_threads - 1; ++i)
-	{
-		_threads.emplace_back([this] { _io_context.run(); });
-	}
-
-	std::cout << "[~] Node started (PID " << getpid() << ")\n";
-	_io_context.run();
-}
-
 void Node::start()
 {
 	setup_acceptor();

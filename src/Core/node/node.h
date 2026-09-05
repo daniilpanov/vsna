@@ -30,9 +30,6 @@ class Node : public std::enable_shared_from_this<Node> {
 		return _config;
 	}
 
-	// Start listening on the configured address and block the calling thread.
-	void run();
-
 	// Start listening and spawn worker threads, then return immediately.
 	void start();
 
