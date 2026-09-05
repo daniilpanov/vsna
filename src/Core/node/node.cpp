@@ -1,6 +1,7 @@
 #include "node.h"
 
 #include <algorithm>
+#include <set>
 #include <unistd.h>
 
 Node::Node() : _io_context(), _acceptor(_io_context)
@@ -68,6 +69,21 @@ void Node::print() const
 void Node::myPath() const
 {
 	std::cout << "[=] Node path: " << _config.getPath() << std::endl;
+}
+
+void Node::printPeers() const
+{
+	const auto knownList = _peers.known();
+	const auto connectedList = _peers.connected();
+	const auto connectedSet = std::set<std::string>(connectedList.begin(), connectedList.end());
+	std::cout << "[=] Known peers (" << knownList.size() << "):\n";
+	for (const auto& addr : knownList)
+	{
+		std::cout << "    " << addr;
+		if (connectedSet.count(addr))
+			std::cout << " (connected)";
+		std::cout << '\n';
+	}
 }
 
 void Node::stop()

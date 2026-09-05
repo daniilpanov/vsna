@@ -15,6 +15,7 @@ void CommandManager::initCommands()
 	addCommand<ExitCommand>("exit", "Exit the program", "");
 	addCommand<PrintCommand>("print", "Print the node config", "");
 	addCommand<MyPathCommand>("mypath", "Show the node path", "");
+	addCommand<PeersCommand>("peers", "List known and connected peers", "");
 	addCommand<ConnectCommand>("connect", "Connect to a peer", "[ip:port]");
 }
 

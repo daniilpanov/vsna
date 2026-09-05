@@ -46,6 +46,9 @@ class Node : public std::enable_shared_from_this<Node> {
 	// Print the node's local share path (UI helper).
 	void myPath() const;
 
+	// Print the known and connected peers (UI helper).
+	void printPeers() const;
+
 	// Registry of known / connected peers.
 	PeerRegistry& peers()
 	{
