@@ -57,9 +57,10 @@ target_include_directories(utils PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(utils PUBLIC Boost::headers)
 
 # Core node (symmetric peer) + UI
-add_library(node STATIC ${CORE_DIR}/node/node.cpp
-                        ${CORE_DIR}/node/session.cpp
-                        ${CORE_DIR}/node/peer_registry.cpp)
+set(NODE_SOURCES ${CORE_DIR}/node/node.cpp
+                 ${CORE_DIR}/node/session.cpp
+                 ${CORE_DIR}/node/peer_registry.cpp)
+add_library(node STATIC ${NODE_SOURCES})
 target_link_libraries(node PUBLIC utils)
 target_compile_definitions(node PUBLIC
     VSNA_HELLO_RETRY_MS=${VSNA_HELLO_RETRY_MS}
@@ -112,4 +113,40 @@ if(GTest_FOUND)
 
     add_test(NAME vsna_tests COMMAND vsna_tests)
     set_tests_properties(vsna_tests PROPERTIES TIMEOUT 60)
+
+    # Keepalive behaviour (periodic ping, ping suppression, idle teardown) uses
+    # compile-time constants (10s/20s in production) that are far too slow for a
+    # unit test. Rebuild the node with short constants into a separate library
+    # and link only the keepalive test against it.
+    add_library(node_keepalive STATIC ${NODE_SOURCES})
+    target_link_libraries(node_keepalive PUBLIC utils)
+    target_include_directories(node_keepalive PUBLIC
+        ${CORE_DIR}/node
+        ${CORE_DIR}/common/types)
+    target_compile_definitions(node_keepalive PRIVATE
+        VSNA_HELLO_RETRY_MS=200
+        VSNA_HELLO_RETRIES=2
+        VSNA_PING_INTERVAL_MS=300
+        VSNA_IDLE_TIMEOUT_MS=800)
+
+    add_executable(vsna_keepalive_tests ${TEST_DIR}/test_keepalive.cpp)
+    target_link_libraries(vsna_keepalive_tests PRIVATE node_keepalive utils
+        GTest::gtest_main GTest::gtest)
+    target_include_directories(vsna_keepalive_tests PRIVATE
+        ${CORE_DIR}/node
+        ${CORE_DIR}/common/types
+        ${CORE_DIR}/utils
+        ${CORE_DIR}/utils/addr
+        ${CORE_DIR}/utils/config
+        ${CORE_DIR}/utils/helper)
+    # Keep the constants visible to the test so NodeSession::PING_INTERVAL and
+    # friends match the library actually linked.
+    target_compile_definitions(vsna_keepalive_tests PRIVATE
+        VSNA_HELLO_RETRY_MS=200
+        VSNA_HELLO_RETRIES=2
+        VSNA_PING_INTERVAL_MS=300
+        VSNA_IDLE_TIMEOUT_MS=800)
+
+    add_test(NAME vsna_keepalive_tests COMMAND vsna_keepalive_tests)
+    set_tests_properties(vsna_keepalive_tests PROPERTIES TIMEOUT 120)
 endif()

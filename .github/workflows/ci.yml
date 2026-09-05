@@ -47,7 +47,7 @@ jobs:
       - name: Configure & build with vcpkg presets
         run: |
           cmake --preset default
-          cmake --build --preset default --target vsna_tests -j2
+          cmake --build --preset default --target vsna_tests vsna_keepalive_tests -j2
 
       - name: Run tests
         run: ctest --test-dir out --output-on-failure

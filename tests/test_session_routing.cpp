@@ -854,13 +854,3 @@ TEST(PersistentSessionDial, IncomingPingBeforeHelloIgnored)
 	worker.join();
 	server.join();
 }
-
-// TODO(core-feature-testing): The heart of the keepalive feature — the outbound
-// periodic ping (PING_INTERVAL) and the idle-teardown (IDLE_TIMEOUT) — is baked
-// into the shared `node` static lib as compile-time static constexpr (10s / 20s,
-// see session.h), so it cannot be exercised by a fast, deterministic unit test
-// without a separate test-only `node` target compiled with small constants (e.g.
-// VSNA_PING_INTERVAL_MS=300, VSNA_IDLE_TIMEOUT_MS=800) that vsna_tests links
-// against instead of `node`. Figure out how to implement that, then cover: the
-// periodic ping while idle, a ping being skipped after an outgoing non-ping frame
-// (`_ping_suppressed`), and the idle timeout closing the connection.
