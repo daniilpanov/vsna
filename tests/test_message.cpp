@@ -26,9 +26,10 @@ TEST(Message, RoundTripPreservesFields)
 	{
 		MessageType type;
 		const char *name;
-	} cases[] = { { MessageType::Hello, "hello" }, { MessageType::Claim, "claim" },
-		          { MessageType::Data, "data" },   { MessageType::Commit, "commit" },
-		          { MessageType::Abort, "abort" }, { MessageType::Status, "status" } };
+	} cases[] = { { MessageType::Hello, "hello" },   { MessageType::Ping, "ping" },
+		          { MessageType::Claim, "claim" },   { MessageType::Data, "data" },
+		          { MessageType::Commit, "commit" }, { MessageType::Abort, "abort" },
+		          { MessageType::Status, "status" } };
 
 	for (const auto& c : cases)
 	{
@@ -62,6 +63,8 @@ TEST(Message, JsonHasEnvelopeFields)
 TEST(Message, EnumNameRoundTrip)
 {
 	EXPECT_EQ(json(MessageType::Hello).get<std::string>(), "hello");
+	EXPECT_EQ(json("ping").get<MessageType>(), MessageType::Ping);
+	EXPECT_EQ(json(MessageType::Ping).get<std::string>(), "ping");
 	EXPECT_EQ(json("status").get<MessageType>(), MessageType::Status);
 	EXPECT_EQ(json(MessageType::Claim).get<std::string>(), "claim");
 	EXPECT_EQ(json("abort").get<MessageType>(), MessageType::Abort);

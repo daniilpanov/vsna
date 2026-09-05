@@ -16,6 +16,11 @@ set(SRC_DIR      ${PROJECT_ROOT}/src)
 set(CORE_DIR     ${SRC_DIR}/Core)
 set(UI_DIR       ${SRC_DIR}/UI)
 
+# Protocol timing constants (single source of truth, forwarded to the code as
+# compile definitions; node propagates them to vsna and vsna_tests).
+set(VSNA_PING_INTERVAL_MS  10000 CACHE STRING "Keepalive ping interval (ms)")
+set(VSNA_IDLE_TIMEOUT_MS   30000 CACHE STRING "Idle timeout before disconnect (ms)")
+
 # Boost
 # VSNA uses Boost header-only libraries (Asio, Beast, system headers),
 # so only the headers target is required. This works both with vcpkg (PC)
@@ -53,6 +58,9 @@ target_link_libraries(utils PUBLIC Boost::headers)
 add_library(node STATIC ${CORE_DIR}/node/node.cpp
                         ${CORE_DIR}/node/session.cpp)
 target_link_libraries(node PUBLIC utils)
+target_compile_definitions(node PUBLIC
+    VSNA_PING_INTERVAL_MS=${VSNA_PING_INTERVAL_MS}
+    VSNA_IDLE_TIMEOUT_MS=${VSNA_IDLE_TIMEOUT_MS})
 target_include_directories(node PUBLIC
     ${CORE_DIR}/node
     ${CORE_DIR}/common/types)

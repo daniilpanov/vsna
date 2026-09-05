@@ -1,4 +1,6 @@
 #pragma once
+#include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <deque>
 #include <functional>
@@ -19,6 +21,14 @@ class Node;
 class NodeSession : public std::enable_shared_from_this<NodeSession> {
   public:
 	using Handler = std::function<void(const Message&)>;
+
+	// Keepalive: a ping is sent every PING_INTERVAL only when no other (non-ping)
+	// frame has been written since the previous tick.
+	static constexpr auto PING_INTERVAL{ std::chrono::milliseconds(VSNA_PING_INTERVAL_MS) };
+
+	// Idle timeout: the connection is torn down if no frame arrives from the peer
+	// within IDLE_TIMEOUT. Any incoming frame (including a ping) refreshes it.
+	static constexpr auto IDLE_TIMEOUT{ std::chrono::milliseconds(VSNA_IDLE_TIMEOUT_MS) };
 
 	explicit NodeSession(Node& node, boost::asio::io_context& ioc);
 
@@ -47,6 +57,13 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	std::string _host;
 	std::string _port;
 
+	asio::steady_timer _ping_timer;
+	asio::steady_timer _idle_timer;
+	std::atomic<bool> _closed{ false };
+	// True when a non-ping frame has been written since the last ping tick,
+	// which suppresses the next keepalive ping.
+	bool _ping_suppressed{ false };
+
 	std::mutex _write_mutex;
 	std::deque<Message> _write_queue;
 	bool _writing{ false };
@@ -55,6 +72,12 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	std::unordered_map<MessageType, Handler> _type_handlers;
 	Handler _default_handler;
 
+	void setup_keepalive();
+	void schedule_ping();
+	void send_ping();
+	void retry_ping(beast::error_code ec);
+	void refresh_idle();
+	void tear_down();
 	void do_read();
 	void do_write_next();
 	void route(const Message& msg);
