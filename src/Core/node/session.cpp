@@ -1,5 +1,8 @@
 #include "session.h"
 
+#include <algorithm>
+#include <cctype>
+
 #include <boost/beast/websocket.hpp>
 
 #include "message.h"
@@ -173,9 +176,8 @@ void NodeSession::setup_hello_timer()
 	});
 }
 
-// Disconnect deterministically: stop all pending timers and close the socket.
-// Closing the socket makes any in-flight read/write observe an error, ending the
-// session's event loop.
+// Disconnect deterministically: stop the hello deadline, drop the peer from the
+// registry so the session holds no long-lived reference, and close the socket.
 void NodeSession::close(const char *reason)
 {
 	// TODO: make close() entry atomic — a strand handler and Node::stop() can run the body
@@ -189,6 +191,10 @@ void NodeSession::close(const char *reason)
 	_ping_timer.cancel();
 	_idle_timer.cancel();
 
+	// The connection is gone; nothing should treat _remote as connected anymore.
+	// Only this session's slot is dropped, so a second live connection to the
+	// same address keeps that peer marked connected.
+	_node.peers().disconnect(_remote, this);
 	// Drop the session from the node's registry so a closed session neither
 	// leaks nor keeps the socket/buffers alive until the node is destroyed.
 	_node.detach(this);
@@ -206,8 +212,9 @@ void NodeSession::close(const char *reason)
 	beast::get_lowest_layer(_ws).socket().close(ignore);
 }
 
-// A frame is a valid hello only if it is typed hello. The hello is purely the
-// initialization signal, so any non-hello frame is rejected during the handshake.
+// A frame is a valid hello only if it is typed hello. The hello carries no peer
+// list (that moved to the peersList frame); it is purely the initialization
+// signal, so any non-hello frame is rejected during the handshake.
 bool NodeSession::isValidHello(const Message& msg)
 {
 	return msg.type == MessageType::Hello;
@@ -220,7 +227,9 @@ void NodeSession::send_hello()
 
 	Message hello;
 	hello.type = MessageType::Hello;
-	hello.payload = json::object();
+	// Announce the configured listen address so the peer can key this connection
+	// by a dialable ip:port instead of the ephemeral source port of the dial.
+	hello.payload = json{ { "addr", _node.getConfig().getAddr().toString() } };
 	send(hello);
 	++_hello_sends;
 
@@ -246,10 +255,105 @@ void NodeSession::retry_hello(beast::error_code ec)
 
 void NodeSession::on_hello(const Message& msg)
 {
-	boost::ignore_unused(msg);
-
 	// The remote peer's first hello is the reply to ours: stop retransmitting.
 	_hello_retry_timer.cancel();
+
+	// Learn the peer's canonical identity. The peer announces the listen address
+	// from its own config in the hello; our socket saw the dial's ephemeral source
+	// port, so the port that matters is the announced one, while the IP is the one
+	// this socket observed. This keeps registry keys dialable instead of pinning
+	// an address nobody can connect back to.
+	const std::string announced = msg.payload.value("addr", "");
+	const auto portPos = announced.find_last_of(':');
+	if (portPos != std::string::npos)
+	{
+		const std::string port = announced.substr(portPos + 1);
+		const bool digitsOnly
+		    = !port.empty() && std::all_of(port.begin(), port.end(), [](unsigned char c) {
+			      return std::isdigit(c) != 0;
+		      });
+		const auto ipEnd = _remote.find(':');
+		if (digitsOnly && ipEnd != std::string::npos)
+			_remote = _remote.substr(0, ipEnd) + ":" + port;
+	}
+
+	// The remote peer is both connected and known now. The peer's own list of
+	// known/connected clients arrives separately via the peersList frame, and
+	// ours is announced once right after the handshake.
+	_node.peers().addConnected(_remote, shared_from_this());
+	send_peers_list();
+}
+
+// Merge a peersList update: the map's keys are peer addresses (ip:port) and the
+// boolean values say whether each peer is connected. This is accepted at any
+// time once the connection is initialized, not just at startup.
+void NodeSession::on_peers_list(const Message& msg)
+{
+	if (!msg.payload.is_object() || !msg.payload.contains("peers")
+	    || !msg.payload["peers"].is_object())
+	{
+		std::cerr << "[!] Received a malformed peersList frame, ignoring\n";
+		return;
+	}
+
+	// A node listening on 0.0.0.0 is reachable via the concrete interface
+	// address the peer dialed, so skip both the configured address and this
+	// session's local endpoint — a node must never register itself.
+	std::string self = _node.getConfig().getAddr().toString();
+	boost::system::error_code local_ec;
+	std::string localAddr;
+	const auto local = _ws.next_layer().socket().local_endpoint(local_ec);
+	if (!local_ec)
+		localAddr = local.address().to_string() + ":" + std::to_string(local.port());
+
+	for (const auto& [addr, connectedVal] : msg.payload["peers"].items())
+	{
+		if (addr == self || (!localAddr.empty() && addr == localAddr))
+			continue;
+		// The flag must be a boolean. A malformed entry (say a string value)
+		// must not throw out of the read handler and kill the io_context.
+		if (!connectedVal.is_boolean())
+		{
+			std::cerr << "[!] Ignoring a peersList entry with a non-boolean flag: " << addr << '\n';
+			continue;
+		}
+		bool connected = connectedVal.get<bool>();
+		if (connected)
+			_node.peers().markConnected(addr);
+		else
+		{
+			_node.peers().removeConnected(addr);
+			_node.peers().addKnown(addr);
+		}
+	}
+}
+
+// Announce the node's peer list exactly once, right after the hello handshake.
+// The announcement is optional: it is skipped entirely when the node has nothing
+// to say beyond the peer it is talking to, so a fresh node never broadcasts an
+// empty list. The map mirrors the peersList wire format: keys are peer addresses
+// (ip:port) and the boolean value marks whether that peer is connected.
+void NodeSession::send_peers_list()
+{
+	// Both the configured address and this session's peer are implied by the
+	// connection itself and never announced.
+	const std::string self = _node.getConfig().getAddr().toString();
+
+	json peers = json::object();
+	for (const auto& addr : _node.peers().known())
+	{
+		if (addr == self || addr == _remote)
+			continue;
+		peers[addr] = _node.peers().isConnected(addr);
+	}
+
+	if (peers.empty())
+		return;
+
+	Message msg;
+	msg.type = MessageType::PeersList;
+	msg.payload = { { "peers", std::move(peers) } };
+	send(msg);
 }
 
 void NodeSession::setup_keepalive()
@@ -350,7 +454,7 @@ void NodeSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
 		// initialization signal) and arrive before the retry budget runs out
 		// (setup_hello_timer). A ping may arrive before the handshake completes
 		// (the peer can initialize sooner) and is safely ignored. Any other type
-		// — or garbage is a protocol violation and ends the
+		// — including peersList — or garbage is a protocol violation and ends the
 		// connection.
 		if (j.is_discarded())
 		{
@@ -427,6 +531,15 @@ void NodeSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
 	if (msg.type == MessageType::Hello)
 	{
 		std::cerr << "[!] Ignoring stale hello after handshake\n";
+		do_read();
+		return;
+	}
+
+	// peersList merges peer-set updates and is accepted at any time once the
+	// connection is initialized.
+	if (msg.type == MessageType::PeersList)
+	{
+		on_peers_list(msg);
 		do_read();
 		return;
 	}

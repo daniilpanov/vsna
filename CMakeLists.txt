@@ -58,7 +58,8 @@ target_link_libraries(utils PUBLIC Boost::headers)
 
 # Core node (symmetric peer) + UI
 add_library(node STATIC ${CORE_DIR}/node/node.cpp
-                        ${CORE_DIR}/node/session.cpp)
+                        ${CORE_DIR}/node/session.cpp
+                        ${CORE_DIR}/node/peer_registry.cpp)
 target_link_libraries(node PUBLIC utils)
 target_compile_definitions(node PUBLIC
     VSNA_HELLO_RETRY_MS=${VSNA_HELLO_RETRY_MS}
@@ -98,7 +99,8 @@ if(GTest_FOUND)
         ${TEST_DIR}/test_addr.cpp
         ${TEST_DIR}/test_config.cpp
         ${TEST_DIR}/test_message.cpp
-        ${TEST_DIR}/test_session_routing.cpp)
+        ${TEST_DIR}/test_session_routing.cpp
+        ${TEST_DIR}/test_peer_discovery.cpp)
     target_link_libraries(vsna_tests PRIVATE node utils GTest::gtest_main GTest::gtest)
     target_include_directories(vsna_tests PRIVATE
         ${CORE_DIR}/node

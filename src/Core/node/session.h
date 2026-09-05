@@ -56,7 +56,7 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	void send(const Message& msg);
 
 	// Register a handler for a specific message type. Incoming frames of that
-	// type are delivered to it (after the hello control frame is
+	// type are delivered to it (after the hello/peersList control frames are
 	// processed internally).
 	void onType(MessageType type, Handler handler);
 
@@ -97,6 +97,8 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	void send_hello();
 	void retry_hello(beast::error_code ec);
 	void on_hello(const Message& msg);
+	void on_peers_list(const Message& msg);
+	void send_peers_list();
 	void setup_keepalive();
 	void schedule_ping();
 	void send_ping();
