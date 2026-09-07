@@ -16,6 +16,13 @@ set(SRC_DIR      ${PROJECT_ROOT}/src)
 set(CORE_DIR     ${SRC_DIR}/Core)
 set(UI_DIR       ${SRC_DIR}/UI)
 
+# Protocol timing constants (single source of truth, forwarded to the code as
+# compile definitions; node propagates them to vsna and vsna_tests).
+set(VSNA_HELLO_RETRY_MS    1000  CACHE STRING "Hello handshake retry interval (ms)")
+set(VSNA_HELLO_RETRIES     4     CACHE STRING "Hello retransmission count")
+set(VSNA_PING_INTERVAL_MS  10000 CACHE STRING "Keepalive ping interval (ms)")
+set(VSNA_IDLE_TIMEOUT_MS   30000 CACHE STRING "Idle timeout before disconnect (ms)")
+
 # Boost
 # VSNA uses Boost header-only libraries (Asio, Beast, system headers),
 # so only the headers target is required. This works both with vcpkg (PC)
@@ -50,9 +57,16 @@ target_include_directories(utils PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(utils PUBLIC Boost::headers)
 
 # Core node (symmetric peer) + UI
-add_library(node STATIC ${CORE_DIR}/node/node.cpp
-                        ${CORE_DIR}/node/session.cpp)
+set(NODE_SOURCES ${CORE_DIR}/node/node.cpp
+                 ${CORE_DIR}/node/session.cpp
+                 ${CORE_DIR}/node/peer_registry.cpp)
+add_library(node STATIC ${NODE_SOURCES})
 target_link_libraries(node PUBLIC utils)
+target_compile_definitions(node PUBLIC
+    VSNA_HELLO_RETRY_MS=${VSNA_HELLO_RETRY_MS}
+    VSNA_HELLO_RETRIES=${VSNA_HELLO_RETRIES}
+    VSNA_PING_INTERVAL_MS=${VSNA_PING_INTERVAL_MS}
+    VSNA_IDLE_TIMEOUT_MS=${VSNA_IDLE_TIMEOUT_MS})
 target_include_directories(node PUBLIC
     ${CORE_DIR}/node
     ${CORE_DIR}/common/types)
@@ -86,7 +100,8 @@ if(GTest_FOUND)
         ${TEST_DIR}/test_addr.cpp
         ${TEST_DIR}/test_config.cpp
         ${TEST_DIR}/test_message.cpp
-        ${TEST_DIR}/test_session_routing.cpp)
+        ${TEST_DIR}/test_session_routing.cpp
+        ${TEST_DIR}/test_peer_discovery.cpp)
     target_link_libraries(vsna_tests PRIVATE node utils GTest::gtest_main GTest::gtest)
     target_include_directories(vsna_tests PRIVATE
         ${CORE_DIR}/node
@@ -98,4 +113,40 @@ if(GTest_FOUND)
 
     add_test(NAME vsna_tests COMMAND vsna_tests)
     set_tests_properties(vsna_tests PROPERTIES TIMEOUT 60)
+
+    # Keepalive behaviour (periodic ping, ping suppression, idle teardown) uses
+    # compile-time constants (10s/20s in production) that are far too slow for a
+    # unit test. Rebuild the node with short constants into a separate library
+    # and link only the keepalive test against it.
+    add_library(node_keepalive STATIC ${NODE_SOURCES})
+    target_link_libraries(node_keepalive PUBLIC utils)
+    target_include_directories(node_keepalive PUBLIC
+        ${CORE_DIR}/node
+        ${CORE_DIR}/common/types)
+    target_compile_definitions(node_keepalive PRIVATE
+        VSNA_HELLO_RETRY_MS=200
+        VSNA_HELLO_RETRIES=2
+        VSNA_PING_INTERVAL_MS=300
+        VSNA_IDLE_TIMEOUT_MS=800)
+
+    add_executable(vsna_keepalive_tests ${TEST_DIR}/test_keepalive.cpp)
+    target_link_libraries(vsna_keepalive_tests PRIVATE node_keepalive utils
+        GTest::gtest_main GTest::gtest)
+    target_include_directories(vsna_keepalive_tests PRIVATE
+        ${CORE_DIR}/node
+        ${CORE_DIR}/common/types
+        ${CORE_DIR}/utils
+        ${CORE_DIR}/utils/addr
+        ${CORE_DIR}/utils/config
+        ${CORE_DIR}/utils/helper)
+    # Keep the constants visible to the test so NodeSession::PING_INTERVAL and
+    # friends match the library actually linked.
+    target_compile_definitions(vsna_keepalive_tests PRIVATE
+        VSNA_HELLO_RETRY_MS=200
+        VSNA_HELLO_RETRIES=2
+        VSNA_PING_INTERVAL_MS=300
+        VSNA_IDLE_TIMEOUT_MS=800)
+
+    add_test(NAME vsna_keepalive_tests COMMAND vsna_keepalive_tests)
+    set_tests_properties(vsna_keepalive_tests PROPERTIES TIMEOUT 120)
 endif()

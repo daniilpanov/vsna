@@ -9,6 +9,8 @@ using json = nlohmann::json;
 // The set of message types exchanged between nodes over the wire.
 enum class MessageType {
 	Hello,
+	PeersList,
+	Ping,
 	Claim,
 	Data,
 	Commit,
@@ -29,6 +31,8 @@ struct Message
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MessageType, { { MessageType::Hello, "hello" },
+                                            { MessageType::PeersList, "peersList" },
+                                            { MessageType::Ping, "ping" },
                                             { MessageType::Claim, "claim" },
                                             { MessageType::Data, "data" },
                                             { MessageType::Commit, "commit" },

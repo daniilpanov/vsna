@@ -17,9 +17,11 @@ make test-native   # build + run tests via the native preset (out-native/, syste
 - Build outputs go to `out/` (single `vsna` node), deps via manifest into `out/vcpkg_installed/`.
 - `vcpkg` is a git submodule; there is **no init_modules script**. The vcpkg CMake toolchain (referenced in `CMakePresets.json`) auto-bootstraps vcpkg and auto-installs all deps declared in `vcpkg.json` during configure.
 - CMake is the entry point — there is **no build.sh/build.bat either**.
-- Requires C++23 (`<print>`, `<format>`, `<source_location>`).
+- Requires C++23 (`CMAKE_CXX_STANDARD 23`).
 - To clean: `rm -rf out` (or `cmake --build --preset default --target clean`).
-- Tests live in `tests/` (GoogleTest) on a separate `vsna_tests` target, registered with CTest; they are only built when `GTest` is found (native: system package; vcpkg: declared in `vcpkg.json`).
+- Tests live in `tests/` (GoogleTest), registered with CTest; they are only built when `GTest` is found (native: system package; vcpkg: declared in `vcpkg.json`).
+  - `vsna_tests` (CTest test `vsna_tests`) — core protocol and peer registry, built from the regular `node` lib.
+  - `vsna_keepalive_tests` (CTest test `vsna_keepalive_tests`) — keepalive behaviour (periodic ping, ping suppression, idle teardown). It links a second, test-only copy of the node (`node_keepalive`) compiled with short constants (`VSNA_PING_INTERVAL_MS=300`, `VSNA_IDLE_TIMEOUT_MS=800`), because the production values (10s/20s) are compile-time `static constexpr` in `session.h` and would make the tests crawl.
 - No CI, no linter beyond `clang-format`.
 
 ### Build on Termux (Android)
@@ -45,15 +47,16 @@ make build-native         # cmake --build --preset native
 
 - **Shared entry point** (`src/main.cpp`): always boots a `NodeUI`; compiled into the single `vsna` executable.
 - `src/` contains only two folders — `Core/` and `UI/` — plus `main.cpp`.
-- Two static libs: `utils` and `node` (Core), plus `ui` (presentation layer), linked into one `vsna` binary.
+- Static libs: `utils` and `node` (Core), plus `ui` (presentation layer), linked into one `vsna` binary; `node_keepalive` is a test-only rebuild of `node` (see Build).
 - **Core/** — business logic, no UI dependencies:
   - `Core/common/types/pch.h` — precompiled header with Boost.Beast/Asio includes and common `using` declarations.
-  - `Core/utils/` — addr, config, helper, logger.
-  - `Core/node/` — `Node` (acceptor + thread pool + outgoing dials) and `NodeSession` (symmetric WS session: `accept`/`dial` branches converge into a shared read/write loop).
+  - `Core/common/message/message.h` — wire envelope `Message` (`{ "type", "payload" }`, no transaction id).
+  - `Core/utils/` — addr, config, helper.
+  - `Core/node/` — `Node` (acceptor + thread pool + outgoing dials), `NodeSession` (symmetric WS session: `accept`/`dial` branches converge into a shared read/write loop), `PeerRegistry` (known/connected peer sets keyed by `ip:port`).
 - **UI/** — presentation layer, calls only Core methods:
-  - `UI/node/` — `NodeUI` (CLI arg parsing + REPL loop), `CommandManager` (command dispatch), `menu/` (command definitions).
-- `src/utils/helper/helper.h` — inline helpers (trim, split, isValidIPv4, join) + constants `max_length` (1024) and `max_threads` (4).
-- `src/utils/logger/logger.h` — C++23 `std::print`-based logging.
+  - `UI/node/` — `NodeUI` (CLI arg parsing + REPL loop), `CommandManager` (command dispatch), `menu/` (command definitions, e.g. `connect`, `peers`, `help`).
+- `src/Core/utils/helper/helper.h` — inline helpers (trim, split, isValidIPv4, join) + constants `max_length` (1024) and `max_threads` (4).
+- Console logging is plain `std::cout` / `std::cerr` with the prefix conventions below (no logger library).
 
 ## Conventions
 
@@ -66,4 +69,5 @@ make build-native         # cmake --build --preset native
 ## Gotchas
 
 - `getpid()` in `Core/node/node.cpp` is POSIX-only.
-- No `#pragma once` in some headers (e.g. Core `session.h`).
+- `pch.h` is a forced precompiled header with no include guard (everything else carries `#pragma once`).
+- Keepalive/idle timings are compile-time macros (`VSNA_*_MS` in `session.h`); they must stay in sync between a `node`-linked binary and `node_keepalive`.

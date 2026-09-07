@@ -1,5 +1,7 @@
 #include "node.h"
 
+#include <algorithm>
+#include <set>
 #include <unistd.h>
 
 Node::Node() : _io_context(), _acceptor(_io_context)
@@ -69,8 +71,27 @@ void Node::myPath() const
 	std::cout << "[=] Node path: " << _config.getPath() << std::endl;
 }
 
+void Node::printPeers() const
+{
+	const auto knownList = _peers.known();
+	const auto connectedList = _peers.connected();
+	const auto connectedSet = std::set<std::string>(connectedList.begin(), connectedList.end());
+	std::cout << "[=] Known peers (" << knownList.size() << "):\n";
+	for (const auto& addr : knownList)
+	{
+		std::cout << "    " << addr;
+		if (connectedSet.count(addr))
+			std::cout << " (connected)";
+		std::cout << '\n';
+	}
+}
+
 void Node::stop()
 {
+	// Stop accepting new connections so no further sessions can be created.
+	beast::error_code ignore;
+	_acceptor.close(ignore);
+
 	_io_context.stop();
 	for (auto& t : _threads)
 	{
@@ -78,6 +99,27 @@ void Node::stop()
 			t.join();
 	}
 	_threads.clear();
+
+	// stop() drops queued handlers instead of running them, yet every pending
+	// read/write/timer still holds a shared_ptr to its session. If those
+	// handlers were left queued they would keep the sessions alive until the
+	// io_context is destroyed in the destructor — after the sessions themselves
+	// are gone. Drain them explicitly: each session is shut down first, so the
+	// remaining handlers complete as errors and release their references.
+	_io_context.restart();
+	for (;;)
+	{
+		for (const auto& session : sessionsSnapshot())
+			session->shutdown();
+		if (_io_context.poll() == 0)
+			break;
+	}
+}
+
+std::vector<std::shared_ptr<NodeSession>> Node::sessionsSnapshot()
+{
+	std::lock_guard<std::mutex> lock(_sessions_mutex);
+	return _sessions;
 }
 
 void Node::do_accept()
@@ -108,4 +150,12 @@ void Node::on_accept(beast::error_code ec, tcp::socket socket)
 	}
 
 	do_accept();
+}
+
+void Node::detach(NodeSession *session)
+{
+	std::lock_guard<std::mutex> lock(_sessions_mutex);
+	_sessions.erase(std::remove_if(_sessions.begin(), _sessions.end(),
+	                               [session](const auto& s) { return s.get() == session; }),
+	                _sessions.end());
 }

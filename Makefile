@@ -46,12 +46,12 @@ build-native:
 # Mirrors the 'configure'/'build' (default) flow; gtest comes from the manifest.
 test:
 	"$(CMAKE_BIN)" --preset default
-	"$(CMAKE_BIN)" --build --preset default --target vsna_tests -j2
+	"$(CMAKE_BIN)" --build --preset default --target vsna_tests vsna_keepalive_tests -j2
 	ctest --test-dir out --output-on-failure
 
 # Native test build (system deps, e.g. Termux apt; uses out-native/).
 # Mirrors the 'configure-native'/'build-native' flow.
 test-native:
 	"$(CMAKE_BIN)" --preset native
-	"$(CMAKE_BIN)" --build --preset native --target vsna_tests -j2
+	"$(CMAKE_BIN)" --build --preset native --target vsna_tests vsna_keepalive_tests -j2
 	ctest --test-dir out-native --output-on-failure

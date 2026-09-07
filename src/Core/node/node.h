@@ -6,6 +6,7 @@
 
 #include "config.h"
 #include "helper.h"
+#include "peer_registry.h"
 #include "session.h"
 
 // A symmetric peer node. Unlike the old split server/client, a single Node both
@@ -45,9 +46,22 @@ class Node : public std::enable_shared_from_this<Node> {
 	// Print the node's local share path (UI helper).
 	void myPath() const;
 
+	// Print the known and connected peers (UI helper).
+	void printPeers() const;
+
+	// Registry of known / connected peers.
+	PeerRegistry& peers()
+	{
+		return _peers;
+	}
+
   private:
+	// NodeSession notifies the node when it closes (close -> detach).
+	friend class NodeSession;
+
 	Config _config;
 	boost::asio::io_context _io_context;
+	PeerRegistry _peers;
 	tcp::acceptor _acceptor;
 	std::vector<std::thread> _threads;
 	// Sessions are pushed from the UI thread (connect) and from io threads
@@ -58,4 +72,12 @@ class Node : public std::enable_shared_from_this<Node> {
 	void setup_acceptor();
 	void do_accept();
 	void on_accept(beast::error_code ec, tcp::socket socket);
+
+	// Copy the live sessions under the mutex.
+	std::vector<std::shared_ptr<NodeSession>> sessionsSnapshot();
+
+	// Drop a session from the registry once it has closed. Callers must hold a
+	// shared reference to the session (for example a running handler), because
+	// this releases the node's own reference and may be the last one.
+	void detach(NodeSession *session);
 };

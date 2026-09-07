@@ -60,6 +60,17 @@ class MyPathCommand : public MenuItem {
 	};
 };
 
+class PeersCommand : public MenuItem {
+  public:
+	PeersCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)
+	{}
+	bool handle(const std::vector<std::string>& args) override
+	{
+		_node.printPeers();
+		return false;
+	};
+};
+
 class PrintCommand : public MenuItem {
   public:
 	PrintCommand(Node& node, const CommandInfo& info) : MenuItem(node, info)

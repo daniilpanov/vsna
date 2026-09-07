@@ -83,33 +83,56 @@ vsna/
 ├── Makefile                   # хелпер форматирования и сборки (format/configure/build)
 ├── .gitignore
 ├── vcpkg.json                  # манифест зависимостей vcpkg (Boost, CLI11, nlohmann-json)
-├── CMakeLists.txt             # корневой сценарий сборки (цели: vsna + node/ui/utils libs)
+├── CMakeLists.txt             # корневой сценарий сборки (vsna + libs + vsna_tests/vsna_keepalive_tests)
 ├── CMakePresets.json          # пресеты сборки (default = единая цель через vcpkg)
 ├── README.md
 │
 ├── config/                    # конфиги приложения
 │   └── config.example.json    # шаблон для новых развёртываний
 │
+├── tests/                     # GoogleTest-тесты (vsna_tests, vsna_keepalive_tests)
+│
 └── src/                       # весь исходный код
     ├── main.cpp               # точка входа; запускает NodeUI (единый узел)
     │
     ├── Core/                  # БИЗНЕС-ЛОГИКА (без зависимостей от UI)
-    │   ├── common/types/      # общие типы
-    │   │   └── pch.h          # precompiled header: boost/beast алиасы, fail()
+    │   ├── common/            # общие типы
+    │   │   ├── message/       # Message: wire-обёртка { "type", "payload" }
+    │   │   └── types/         # pch.h — precompiled header (boost/beast алиасы, fail())
     │   │
     │   ├── utils/             # утилиты общего назначения (цель utils.lib)
     │   │   ├── addr/          # Addr: ip:port, валидация, toString
     │   │   ├── config/        # Config: загрузка из json, getAddr/getPath
-    │   │   ├── helper/        # inline-утилиты: trim, splitArgs, isValidIPv4
-    │   │   └── logger/        # C++23 std::print-based logging
+    │   │   └── helper/        # inline-утилиты: trim, splitArgs, isValidIPv4
     │   │
     │   └── node/              # симметричный узел (цель node.lib)
     │       ├── node.*         # Node: acceptor + пул потоков + исходящие диалы
-    │       └── session.*      # NodeSession: симметричная WS-сессия (read => echo => read)
+    │       ├── session.*      # NodeSession: hello/peersList/keepalive по WS
+    │       └── peer_registry.*# PeerRegistry: known/connected, ключ ip:port
     │
     └── UI/                    # ПРЕЗЕНТАЦИОННЫЙ СЛОЙ (вызывает методы Core)
         └── node/
             ├── node_ui.*      # NodeUI: CLI11-парсинг, REPL-цикл
-            ├── menu/          # MenuItem-иерархия: классы-команды (connect, help, exit...)
+            ├── menu/          # MenuItem-иерархия: классы-команды (connect, peers, help, exit...)
             └── com_manager/   # CommandManager: реестр и вызов команд
 ```
+
+**Wire Protocol**
+
+Every frame is JSON: `{ "type": "...", "payload": {...} }` (no transaction id).
+
+- `hello` — the initialization signal. The first frame a connection sees must be a
+  `hello`; it carries the sender's configured listen address
+  (`payload.addr`, e.g. `127.0.0.1:5555`) so the peer can key the connection by a
+  dialable address instead of the ephemeral source port.
+- `peersList` — announces the sender's known peers as `payload.peers`, a map of
+  `"ip:port": true|false` (true = connected). Merged at any time after `hello`;
+  a copy is announced once right after the handshake.
+- `ping` — keepalive. Every `PING_INTERVAL` (10s) a `ping` is sent unless a
+  non-ping frame was already written (that counts as activity). Any incoming
+  frame — including a `ping` — refreshes the idle deadline; if nothing arrives
+  within `IDLE_TIMEOUT` (20s) the connection is torn down.
+
+The application messages (`claim`, `data`, `commit`, `abort`, `status`) are
+routed to per-type handlers or a default handler and currently reply with
+`status`.
