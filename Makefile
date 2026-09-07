@@ -1,6 +1,6 @@
 ROOT_DIR := .
 SOURCE_EXTENSIONS := cpp h
-EXCLUDED_DIRS := ./.git ./out ./libs ./vcpkg
+EXCLUDED_DIRS := ./.git ./out ./out-native ./libs ./vcpkg
 
 CLANG_FORMAT ?= clang-format
 CMAKE_BIN ?= cmake
