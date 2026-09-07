@@ -13,10 +13,9 @@
 class Node;
 
 // A persistent symmetric peer session. A single connection stays alive across
-// many messages and multiplexes several transactions at once, distinguished by
-// their tx_id: incoming messages are routed to the handler registered for that
-// tx_id (or to a default handler when none is registered). Writes are queued so
-// send() is safe to call from any thread.
+// many messages. Incoming frames are routed to the handler registered for their
+// message *type* (or to a default handler when none is registered). Writes are
+// queued so send() is safe to call from any thread.
 class NodeSession : public std::enable_shared_from_this<NodeSession> {
   public:
 	using Handler = std::function<void(const Message&)>;
@@ -32,11 +31,11 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	// Enqueue a message to be serialized and written on this connection.
 	void send(const Message& msg);
 
-	// Register a handler for a specific transaction id. Messages carrying that
-	// tx_id are delivered to it.
-	void onTx(uint64_t tx_id, Handler handler);
+	// Register a handler for a specific message type. Incoming frames of that
+	// type are delivered to it.
+	void onType(MessageType type, Handler handler);
 
-	// Register a default handler for messages whose tx_id has no handler.
+	// Register a default handler for message types with no registered handler.
 	void onMessage(Handler handler);
 
   private:
@@ -53,7 +52,7 @@ class NodeSession : public std::enable_shared_from_this<NodeSession> {
 	bool _writing{ false };
 	std::string _outgoing;
 
-	std::unordered_map<uint64_t, Handler> _handlers;
+	std::unordered_map<MessageType, Handler> _type_handlers;
 	Handler _default_handler;
 
 	void do_read();

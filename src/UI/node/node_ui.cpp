@@ -7,7 +7,7 @@ std::vector<std::string> NodeUI::CLIParse(int argc, char **argv)
 
 	std::string ip{ "0.0.0.0" };
 	std::string port{ "5555" };
-	std::string path{ "/" };
+	std::string path{ "." };
 	std::string configFile;
 
 	app.add_option("-i,--ip", ip, "IP address of the listener socket");

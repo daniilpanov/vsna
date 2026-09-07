@@ -47,9 +47,9 @@ void NodeSession::send(const Message& msg)
 	asio::dispatch(_ws.get_executor(), [self = shared_from_this()] { self->do_write_next(); });
 }
 
-void NodeSession::onTx(uint64_t tx_id, Handler handler)
+void NodeSession::onType(MessageType type, Handler handler)
 {
-	_handlers[tx_id] = std::move(handler);
+	_type_handlers[type] = std::move(handler);
 }
 
 void NodeSession::onMessage(Handler handler)
@@ -157,8 +157,8 @@ void NodeSession::on_read(beast::error_code ec, std::size_t bytes_transferred)
 
 void NodeSession::route(const Message& msg)
 {
-	auto it = _handlers.find(msg.tx_id);
-	if (it != _handlers.end())
+	auto it = _type_handlers.find(msg.type);
+	if (it != _type_handlers.end())
 	{
 		it->second(msg);
 		return;
@@ -168,8 +168,7 @@ void NodeSession::route(const Message& msg)
 		_default_handler(msg);
 		return;
 	}
-	std::cout << "[~] Unhandled message (type=" << json(msg.type).get<std::string>()
-	          << ", tx_id=" << msg.tx_id << ")\n";
+	std::cout << "[~] Unhandled message (type=" << json(msg.type).get<std::string>() << ")\n";
 }
 
 void NodeSession::on_write(beast::error_code ec, std::size_t bytes_transferred)

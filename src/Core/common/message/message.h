@@ -17,11 +17,11 @@ enum class MessageType {
 };
 
 // Wire-level message envelope. Every frame exchanged between nodes is a JSON
-// object serialized from this struct: { "type", "tx_id", "payload" }.
+// object serialized from this struct: { "type", "payload" }. A frame is
+// identified solely by its type; there is no transaction id.
 struct Message
 {
 	MessageType type;
-	uint64_t tx_id;
 	json payload;
 
 	json toJson() const;
@@ -37,14 +37,13 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MessageType, { { MessageType::Hello, "hello" },
 
 inline json Message::toJson() const
 {
-	return json{ { "type", type }, { "tx_id", tx_id }, { "payload", payload } };
+	return json{ { "type", type }, { "payload", payload } };
 }
 
 inline Message Message::fromJson(const json& j)
 {
 	Message msg;
 	msg.type = j.at("type").get<MessageType>();
-	msg.tx_id = j.at("tx_id").get<uint64_t>();
 	msg.payload = j.value("payload", json::object());
 	return msg;
 }

@@ -35,21 +35,6 @@ void Node::setup_acceptor()
 	std::cout << "[~] Listening on " << _config.getAddr().toString() << '\n';
 }
 
-void Node::run()
-{
-	setup_acceptor();
-	do_accept();
-
-	_threads.reserve(max_threads - 1);
-	for (size_t i = 0; i < max_threads - 1; ++i)
-	{
-		_threads.emplace_back([this] { _io_context.run(); });
-	}
-
-	std::cout << "[~] Node started (PID " << getpid() << ")\n";
-	_io_context.run();
-}
-
 void Node::start()
 {
 	setup_acceptor();
@@ -67,7 +52,10 @@ void Node::start()
 void Node::connect(const std::string& host, const std::string& port)
 {
 	auto session = std::make_shared<NodeSession>(*this, _io_context);
-	_sessions.push_back(session);
+	{
+		std::lock_guard<std::mutex> lock(_sessions_mutex);
+		_sessions.push_back(session);
+	}
 	session->dial(host, port);
 }
 
@@ -112,7 +100,10 @@ void Node::on_accept(beast::error_code ec, tcp::socket socket)
 		          << socket.remote_endpoint().port() << '\n';
 
 		auto session = std::make_shared<NodeSession>(*this, _io_context);
-		_sessions.push_back(session);
+		{
+			std::lock_guard<std::mutex> lock(_sessions_mutex);
+			_sessions.push_back(session);
+		}
 		session->accept(std::move(socket));
 	}
 

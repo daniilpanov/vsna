@@ -37,7 +37,6 @@ endif()
 # Utils (always)
 add_library(utils STATIC ${CORE_DIR}/utils/addr/addr.cpp
                           ${CORE_DIR}/utils/config/config.cpp
-                          ${CORE_DIR}/utils/logger/logger.h
                           ${CORE_DIR}/utils/helper/helper.h)
 target_include_directories(utils PUBLIC
     ${CORE_DIR}/common/types
@@ -45,7 +44,6 @@ target_include_directories(utils PUBLIC
     ${CORE_DIR}/utils
     ${CORE_DIR}/utils/addr
     ${CORE_DIR}/utils/config
-    ${CORE_DIR}/utils/logger
     ${CORE_DIR}/utils/helper
 )
 target_include_directories(utils PUBLIC ${Boost_INCLUDE_DIRS})
